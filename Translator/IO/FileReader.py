@@ -38,5 +38,4 @@ class FileReader:
     def __readfile(self, filepath):
         fin = open(filepath, 'r')
         data = fin.read()
-        data = data.replace('\n', '')
         return data
