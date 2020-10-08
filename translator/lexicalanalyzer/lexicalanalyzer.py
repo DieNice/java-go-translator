@@ -1,5 +1,5 @@
-from .lexicaltable import LexicalTable
-from .idtable import IdTable
+from lexicaltable import LexicalTable
+from idtable import IdTable
 import re
 
 
@@ -43,6 +43,7 @@ class LexicalAnalyzer:
     VALIDCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+_-[]'\",;-%/*~<>&^|!.=(){} \n"
 
     def check(self, str):
+        '''checks the entire string for the validity of characters'''
         checklist = []
         for i in str:
             if i not in self.VALIDCHARS:
@@ -50,11 +51,13 @@ class LexicalAnalyzer:
         return checklist
 
     def deletecomments(self, instr):
+        '''delete all comments from string '''
         res = re.sub(r'\s+//[\w\s]+\n', '', instr)
         res = re.sub(r'\s+/\*[\w\s]+\*/\n', '', res)
         return res
 
     def skan(self, instr):
+        '''Parses text into tokens, forms a tree of name tables and returns a table of tokens'''
         lextable = LexicalTable()
         namefile = instr[0]
         filedata = instr[1]
