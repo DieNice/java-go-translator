@@ -1,5 +1,5 @@
 class Token:
-    TYPETOKEN = ("ID", "KEYWORD", "NUM", "OPERATION", "STRING", "DELIMETER")
+    TYPETOKEN = ("ID", "RESERVED", "KEYWORD", "NUM", "OPERATION", "STRING", "DELIMETER")
 
     def __init__(self, nametoken, typetoken, value=None):
         self.name = nametoken
