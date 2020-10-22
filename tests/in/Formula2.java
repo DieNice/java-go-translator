@@ -5,10 +5,5 @@ public class Formula2 {
         a = e - d;
         a = f / b;
         a = d % c;
-        a = f >> g;
-        a = f << h;
-        a = h | g;
-        a = c & d;
-        a = f ^ e;
     }
 }
