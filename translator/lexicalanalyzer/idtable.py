@@ -17,10 +17,6 @@ class IdTable:
         '''adds the name of the identifier'''
         self.table[identifier] = type
 
-    def addtype(self, identifier: str, type):
-        '''adds a type to an existing identifier'''
-        self.table[identifier] = type
-
     def getid(self, identifier: str) -> str:
         '''return type of identifier'''
         return self.table.get(identifier)

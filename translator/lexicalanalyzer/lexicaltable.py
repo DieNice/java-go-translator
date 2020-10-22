@@ -1,4 +1,4 @@
-from tok import Token
+from .tok import Token
 
 
 class LexicalTable:
@@ -13,3 +13,6 @@ class LexicalTable:
 
     def append(self, new: Token):
         self.tokenslist.append(new)
+
+    def __str__(self):
+        return str([str(i) for i in self.tokenslist])
