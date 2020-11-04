@@ -1,4 +1,4 @@
-from .tok import Token
+from tok import Token
 
 
 class LexicalTable:
@@ -16,3 +16,12 @@ class LexicalTable:
 
     def __str__(self):
         return str([str(i) for i in self.tokenslist])
+
+    def __eq__(self, other):
+        if not isinstance(other, LexicalTable):
+            raise Exception("comparable object isn't LexicalTable")
+        return self.tokenslist == other.tokenslist
+
+    def __ne__(self, other):
+        return not self == other
+

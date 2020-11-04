@@ -1,6 +1,6 @@
 class IdTableFactory:
 
-    def createtable(self, pointer):
+    def createtable(self, pointer=None):
         newtable = IdTable(pointer)
         return newtable
 
@@ -35,3 +35,13 @@ class IdTable:
         for i in self.table:
             res = res + str(i) + ':' + str(self.table[i]) + '\n'
         return res
+
+    def __eq__(self, other):
+        if not isinstance(other, IdTable):
+            raise Exception("comparable object isn't IdTable")
+        return self.table == other.table and self.childs == other.childs
+
+    def __ne__(self, other):
+        return not self == other
+
+

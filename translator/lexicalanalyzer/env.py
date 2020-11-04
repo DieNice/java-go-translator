@@ -1,5 +1,5 @@
-from .idtable import IdTable
-from .idtable import IdTableFactory
+from idtable import IdTable
+from idtable import IdTableFactory
 
 
 class Env:
@@ -27,3 +27,8 @@ class Env:
         if ptr.getid(id) is not None:
             return ptr.getid(id)
         return self.searchelem(ptr.prev, id)
+
+    def __eq__(self, other):
+        if not isinstance(other, Env):
+            raise Exception("comparable object isn't Env")
+        return self.root == other.root

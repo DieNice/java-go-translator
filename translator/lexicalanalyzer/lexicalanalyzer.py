@@ -1,9 +1,9 @@
 import re
 import sys
 
-from .env import Env
-from .lexicaltable import LexicalTable
-from .tok import Token
+from env import Env
+from lexicaltable import LexicalTable
+from tok import Token
 
 
 class LexicalAnalyzer:
@@ -122,3 +122,4 @@ class LexicalAnalyzer:
                 else:
                     pos = match.end(0)
             return [lextable, env]
+
