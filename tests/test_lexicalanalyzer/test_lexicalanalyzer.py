@@ -1,19 +1,23 @@
-import unittest
-import sys
 import os
+import sys
+import unittest
+
 sys.path.append("../../translator/lexicalanalyzer/")
 from lexicalanalyzer import LexicalAnalyzer
 from tok import Token
 from env import Env
 
+
 class ScanTestCase(unittest.TestCase):
     LA = LexicalAnalyzer()
     pathdir = os.getcwd() + "../../in/"
-    pathdir = os.path.abspath(pathdir)
 
     def test_comment1(self):
-        name = "\Comment1.java"
-        file = open(self.pathdir + name).read()
+        name = "Comment1.java"
+        filepath = os.path.abspath(self.pathdir + name)
+
+        with open(filepath, 'r') as f:
+            file = f.read()
         result = self.LA.skan((name, file))
 
         tempTokenList = [
