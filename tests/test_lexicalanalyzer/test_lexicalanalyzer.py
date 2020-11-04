@@ -8,8 +8,9 @@ from env import Env
 
 class ScanTestCase(unittest.TestCase):
     LA = LexicalAnalyzer()
-    pathdir = os.getcwd() + "/tests/in/"
-    path = "D:\PythonProj\jgt\\tests\in\\"
+    pathdir = os.getcwd() + "\\tests/in/"
+    pathdir = os.path.abspath(pathdir)
+    #path = "D:\PythonProj\jgt\\tests\in\\"
 
     def test_comment1(self):
         name = "Comment1.java"
