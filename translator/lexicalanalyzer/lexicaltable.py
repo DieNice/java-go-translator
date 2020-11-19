@@ -1,4 +1,4 @@
-from tok import Token
+from .tok import Token
 
 
 class LexicalTable:

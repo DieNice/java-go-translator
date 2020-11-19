@@ -1,5 +1,5 @@
-from idtable import IdTable
-from idtable import IdTableFactory
+from .idtable import IdTable
+from .idtable import IdTableFactory
 
 
 class Env:
