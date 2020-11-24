@@ -131,13 +131,14 @@ if __name__ == '__main__':
 
     ARGS = Rule("ARGUMENTS", Production(EXPR))
     ARGS.add(Production(EXPR, ",", ARGS))
-    STD_FUNCS = Rule("STANDARD FUNCTIONS", Production("Math.log(", ARGS, ")"),
-                     Production("Math.pow(", ARGS, ")"), Production("Math.sqtr(", ARGS, ")"))
+    STD_FUNCS = Rule("STANDARD FUNCTIONS", Production("Math.log", "(", ARGS, ")"),
+                     Production("Math.pow", "(", ARGS, ")"),
+                     Production("Math.sqtr", "(", ARGS, ")"))
     ARITH_MUL.add(Production(STD_FUNCS))
 
     UNARY_OPERS = Rule("UNARY OPERATORS", Production("++"), Production("--"))
     ASSGN = Rule("ASSIGNMENT", Production(IDENTIFICATOR, "=", EXPR), Production(EXPR, UNARY_OPERS))
-    OUTPUT_FUNC = Rule("OUTPUT FUNCTION", Production("System.out.print(", STR_EXPR, ")"))
+    OUTPUT_FUNC = Rule("OUTPUT FUNCTION", Production("System.out.print", "(", STR_EXPR, ")"))
 
     DECLARE_ONE_VAR = Rule("DECLARE A ONE VARIABLE", Production(TYPE_NAME, IDENTIFICATOR),
                            Production(TYPE_NAME, IDENTIFICATOR, "=", EXPR))
@@ -148,9 +149,36 @@ if __name__ == '__main__':
     SUGGESTION_LIST = Rule("SUGGESTION_LIST", Production(SUGGESTION, ";"))
     SUGGESTION_LIST.add(Production(SUGGESTION, ";", SUGGESTION_LIST))
 
-    MAIN_FUNC = Rule("MAIN FUNCTION", Production("public static void main(String[] args){", SUGGESTION_LIST, "}"))
+    MAIN_FUNC = Rule("MAIN FUNCTION", Production("public", "static", "void", "main",
+                                                 "(", "String[]", "args", ")", "{", SUGGESTION_LIST, "}"))
 
-    PROGRAMM = Rule("PROGRAMM", Production("public class", IDENTIFICATOR, "{", MAIN_FUNC, "}"))
+    PROGRAMM = Rule("PROGRAMM", Production("public", "class", IDENTIFICATOR, "{", MAIN_FUNC, "}"))
+
+    BREAK_OPERS = Rule("BREAK OPEARTORS", Production("break"), Production("continue"))
+    INIT_COUNT = Rule("INIT COUNTER", Production(""), Production(DECLARE_VAR), Production(ASSGN))
+    MOD_COUNT = Rule("MODIFY COUNTER", Production(""), Production(ASSGN))
+    COND = Rule("CONDITION", Production(LOG_EXPR))
+    CYCLE_FOR = Rule("CYCLE FOR", Production("for", "(", INIT_COUNT, ";",
+                                             COND, ";", MOD_COUNT, ")", "{",
+                                             SUGGESTION_LIST, "}"),
+                     Production("for", "(", INIT_COUNT, ";", COND, ";", MOD_COUNT,
+                                ")", SUGGESTION))
+    CYCLE_WHILE = Rule("CYCLE WHILE", Production("while", "(", COND, ")", "{",
+                                                 SUGGESTION_LIST, "}"))
+    CYCLE_DO = Rule("CYCLE DO", Production("do", "{", SUGGESTION_LIST, "}",
+                                           "while", "(", COND, ")", ))
+    CYCLE = Rule("CYCLE", Production(CYCLE_FOR), Production(CYCLE_DO), Production(CYCLE_WHILE))
+
+    IF_OPER = Rule("IF OPERATOR", Production("if", "(", COND, ")", "{",
+                                             SUGGESTION_LIST, "}"),
+                   Production("if", "(", COND, ")", "{", SUGGESTION_LIST, "}",
+                              "else", "{", SUGGESTION_LIST, "}"),
+                   Production("if", "(", COND, ")", "{", SUGGESTION_LIST, "}",
+                              "else", SUGGESTION),
+                   Production("if", "(", COND, ")", SUGGESTION,
+                              "else", "{", SUGGESTION_LIST, "}"),
+                   Production("if", "(", COND, ")", SUGGESTION))
+    SUGGESTION.add(Production(IF_OPER), Production(CYCLE))
 '''SYM = Rule("SYM", Production("a"))
     OP = Rule("OP", Production("+"))
     EXPR = Rule("EXPR", Production(SYM))
