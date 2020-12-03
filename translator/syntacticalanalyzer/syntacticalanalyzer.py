@@ -3,6 +3,7 @@ from node import Node
 from production import Production
 from rule import Rule
 from state import State
+import copy
 
 
 def predict(col, rule):
@@ -30,7 +31,7 @@ def complete(col, state):
 GAMMA_RULE = u"GAMMA"
 
 
-def parse(rule, text):
+def earley(rule, text):
     table = [Column(i, tok) for i, tok in enumerate([None] + text.lower().split())]
     table[0].add(State(GAMMA_RULE, Production(rule), 0, table[0]))
 
@@ -46,55 +47,85 @@ def parse(rule, text):
                     scan(table[i + 1], state, term)
     for st in table[-1]:
         if st.name == GAMMA_RULE and st.completed():
-            return st
+            return table
     else:
         raise ValueError("parsing failed")
 
 
-def build_trees(state):
-    return build_trees_helper([], state, len(state.rules) - 1, state.end_column)
+def right_parsing(table):
+    state = None
+    for st in table[-1]:
+        if st.name == GAMMA_RULE and st.completed():
+            state = st
+    return sub_parsing([], table, state, state.end_column.index)
 
 
-def build_trees_helper(children, state, rule_index, end_column):
-    if rule_index < 0:
-        return [Node(state, children)]
-    elif rule_index == 0:
-        start_column = state.start_column
-    else:
-        start_column = None
-
-    rule = state.rules[rule_index]
-    outputs = []
-    for st in end_column:
-        if st is state:
-            break
-        if st is state or not st.completed() or st.name != rule.name:
-            continue
-        if start_column is not None and st.start_column != start_column:
-            continue
-        for sub_tree in build_trees(st):
-            for node in build_trees_helper([sub_tree] + children, state, rule_index - 1, st.start_column):
-                outputs.append(node)
-    return outputs
+def sub_parsing(acc, table, state: State, j: int):
+    acc.append(Rule(state.name,state.production))
+    k = len(state.production)
+    c = j
+    while k != 0:
+        Xk = state.production[k - 1]
+        if not isinstance(Xk, Rule):
+            k -= 1
+            c -= 1
+        else:
+            Ic = table[c]
+            # founding the state for Nonterminal Xk
+            for st in Ic:
+                if st.completed() and st.name == Xk.name:
+                    r = st.start_column.index
+                    Ir = table[r]
+                    # founding the previous state of Nonterminal Xk
+                    for prevst in Ir:
+                        expectedst = copy.copy(state)
+                        expectedst.dot_index = prevst.getindexXk(Xk)
+                        expectedst.start_column = prevst.start_column
+                        expectedst.end_column = prevst.end_column
+                        if not prevst.completed() and prevst == expectedst:
+                            sub_parsing(acc, table, st, c)
+                            k -= 1
+                            c = r
+    return acc
 
 
 if __name__ == '__main__':
-    LETTER = Rule("LETTER", Production("A"), Production("B"), Production("C"), Production("D"), Production("E"), Production("F"), Production("G"), Production("H"), Production("I"), Production("J"), Production("K"), Production("L"), Production("M"), Production("N"), Production("O"), Production("P"), Production("Q"), Production("R"), Production("S"), Production("T"), Production("U"), Production("V"), Production("W"), Production("X"), Production("Y"), Production("Z"),
-                            Production("a"), Production("b"), Production("c"), Production("d"), Production("e"), Production("f"), Production("g"), Production("h"), Production("i"), Production("j"), Production("k"), Production("l"), Production("m"), Production("n"), Production("o"), Production("p"), Production("q"), Production("r"), Production("s"), Production("t"), Production("u"), Production("v"), Production("w"), Production("x"), Production("y"), Production("z"))
+    LETTER = Rule("LETTER", Production("A"), Production("B"), Production("C"), Production("D"), Production("E"),
+                  Production("F"), Production("G"), Production("H"), Production("I"), Production("J"),
+                  Production("K"),
+                  Production("L"), Production("M"), Production("N"), Production("O"), Production("P"),
+                  Production("Q"),
+                  Production("R"), Production("S"), Production("T"), Production("U"), Production("V"),
+                  Production("W"),
+                  Production("X"), Production("Y"), Production("Z"),
+                  Production("a"), Production("b"), Production("c"), Production("d"), Production("e"),
+                  Production("f"),
+                  Production("g"), Production("h"), Production("i"), Production("j"), Production("k"),
+                  Production("l"),
+                  Production("m"), Production("n"), Production("o"), Production("p"), Production("q"),
+                  Production("r"),
+                  Production("s"), Production("t"), Production("u"), Production("v"), Production("w"),
+                  Production("x"),
+                  Production("y"), Production("z"))
 
-    DIGIT = Rule("DIGIT", Production("1"), Production( "2"), Production("3"), Production("4"), Production("5"), Production("6"), Production("7"), Production("8"), Production("9"), Production("0"))
+    DIGIT = Rule("DIGIT", Production("1"), Production("2"), Production("3"), Production("4"), Production("5"),
+                 Production("6"), Production("7"), Production("8"), Production("9"), Production("0"))
     SIGN = Rule("SIGN", Production("+"), Production("-"), Production(""))
     BOOL_VAL = Rule("BOOL VALUE", Production("true"), Production("false"))
-    TYPE_NAME = Rule("TYPE NAME", Production("byte"), Production("short"), Production("int"), Production("long"), Production("float"), Production("double"), Production("char"), Production("boolean"), Production("String"))
+    TYPE_NAME = Rule("TYPE NAME", Production("byte"), Production("short"), Production("int"), Production("long"),
+                     Production("float"), Production("double"), Production("char"), Production("boolean"),
+                     Production("String"))
     ID_SYMBOLS = Rule("IDENTIFICATOR SYMBOLS", Production(DIGIT), Production(LETTER), Production("_"))
     ID_SYMBOLS.add(Production(DIGIT, ID_SYMBOLS), Production(LETTER, ID_SYMBOLS), Production("_", ID_SYMBOLS))
-    IDENTIFICATOR = Rule("IDENTIFICATOR", Production("_", ID_SYMBOLS), Production(LETTER, ID_SYMBOLS), Production(LETTER))
+    IDENTIFICATOR = Rule("IDENTIFICATOR", Production("_", ID_SYMBOLS), Production(LETTER, ID_SYMBOLS),
+                         Production(LETTER))
 
     STRING = Rule("STRING", Production(DIGIT), Production(SIGN), Production(LETTER))
     STRING.add(Production(DIGIT, STRING), Production(SIGN, STRING), Production(LETTER, STRING))
     STR_SGN_SUM = Rule("STRING SUM SIGN", Production("+"))
     STR_SGN_MUL = Rule("STRING MUL SIGN", Production("*"))
-    STR_MUL = Rule("STRING MULTIPLIER", Production(IDENTIFICATOR), Production("'", STRING, "'"), Production("\"", STRING, "\""))
+    STR_MUL = Rule("STRING MULTIPLIER", Production(IDENTIFICATOR), Production("'", STRING, "'"),
+                   Production("\"", STRING, "\""))
     STR_SUM = Rule("STRING ADDENDUM", Production(STR_MUL))
     STR_SUM.add(Production(STR_MUL, STR_SGN_MUL, STR_SUM))
     STR_EXPR = Rule("STRING EXPRESSION", Production(STR_SUM))
@@ -179,40 +210,13 @@ if __name__ == '__main__':
                               "else", "{", SUGGESTION_LIST, "}"),
                    Production("if", "(", COND, ")", SUGGESTION))
     SUGGESTION.add(Production(IF_OPER), Production(CYCLE))
-'''SYM = Rule("SYM", Production("a"))
-    OP = Rule("OP", Production("+"))
-    EXPR = Rule("EXPR", Production(SYM))
-    EXPR.add(Production(EXPR, OP, EXPR))
 
-    for i in range(1, 9):
-        text = " + ".join(["a"] * i)
-        q0 = parse(EXPR, text)
-        forest = build_trees(q0)
-        print(len(forest), text)
+    F = Rule("F", Production('a'))
+    T = Rule("T", Production(F))
+    E = Rule("E", Production(T))
+    T.add(Production(F, '*', T))
+    E.add(Production(T))
+    F.add(Production('(', E, ')'))
+    E.add(Production(T, '+', E))
 
-    N = Rule("N", Production("time"), Production("flight"), Production("banana"),
-             Production("flies"), Production("boy"), Production("telescope"))
-    D = Rule("D", Production("the"), Production("a"), Production("an"))
-    V = Rule("V", Production("book"), Production("eat"), Production("sleep"), Production("saw"))
-    P = Rule("P", Production("with"), Production("in"), Production("on"), Production("at"),
-             Production("through"))
-
-    PP = Rule("PP")
-    NP = Rule("NP", Production(D, N), Production("john"), Production("houston"))
-    NP.add(Production(NP, PP))
-    PP.add(Production(P, NP))
-
-    VP = Rule("VP", Production(V, NP))
-    VP.add(Production(VP, PP))
-    S = Rule("S", Production(NP, VP), Production(VP))
-
-    for tree in build_trees(parse(S, "book the flight through houston")):
-        print("--------------------------")
-        tree.print_()
-
-    for tree in build_trees(parse(S, "john saw the boy with the telescope")):
-        print("--------------------------")
-        tree.print_()
-    '''
-
-
+    print(right_parsing(earley(E, '( a + a ) * a')))

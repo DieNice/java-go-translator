@@ -31,3 +31,9 @@ class State(object):
         if self.completed():
             return None
         return self.production[self.dot_index]
+
+    def getindexXk(self, xk):
+        for i in range(len(self.production)):
+            if self.production[i] == xk:
+                return i
+        return -1
