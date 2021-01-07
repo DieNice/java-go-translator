@@ -37,3 +37,7 @@ class State(object):
             if self.production[i] == xk:
                 return i
         return -1
+
+    # compare right part and dot index
+    def isSame(self, other):
+        return (self.production, self.dot_index) == (other.production, other.dot_index)

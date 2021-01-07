@@ -33,6 +33,8 @@ GAMMA_RULE = u"GAMMA"
 
 def earley(rule, text):
     table = [Column(i, tok) for i, tok in enumerate([None] + text.lower().split())]
+    #axiom = rule.name
+    #predict(table[0], rule)
     table[0].add(State(GAMMA_RULE, Production(rule), 0, table[0]))
 
     for i, col in enumerate(table):
@@ -64,7 +66,9 @@ def sub_parsing(acc, table, state: State, j: int):
     acc.append(Rule(state.name,state.production))
     k = len(state.production)
     c = j
+    breaked = False
     while k != 0:
+        breaked = False
         Xk = state.production[k - 1]
         if not isinstance(Xk, Rule):
             k -= 1
@@ -73,21 +77,24 @@ def sub_parsing(acc, table, state: State, j: int):
             Ic = table[c]
             # founding the state for Nonterminal Xk
             for st in Ic:
+                if breaked:
+                    break
                 if st.completed() and st.name == Xk.name:
                     r = st.start_column.index
                     Ir = table[r]
+                    expectedst = copy.copy(state)
+                    expectedst.dot_index = k-1
                     # founding the previous state of Nonterminal Xk
                     for prevst in Ir:
-                        expectedst = copy.copy(state)
-                        expectedst.dot_index = prevst.getindexXk(Xk)
-                        expectedst.start_column = prevst.start_column
-                        expectedst.end_column = prevst.end_column
-                        if not prevst.completed() and prevst == expectedst:
+                        #exit from cycle
+                        if breaked:
+                            break
+                        if not prevst.completed() and prevst.isSame(expectedst):
                             sub_parsing(acc, table, st, c)
                             k -= 1
                             c = r
+                            breaked = True
     return acc
-
 
 if __name__ == '__main__':
     LETTER = Rule("LETTER", Production("A"), Production("B"), Production("C"), Production("D"), Production("E"),
@@ -144,7 +151,6 @@ if __name__ == '__main__':
     ARITH_EXPR = Rule("ARITHMETIC EXPRESSION", Production(ARITH_SUM))
     ARITH_EXPR.add(Production(ARITH_SUM, ARITH_SGN_SUM, ARITH_EXPR))
     ARITH_MUL.add(Production("(", ARITH_EXPR, ")"))
-
 
     LOG_SGN_SUM = Rule("LOGIC SUM SIGN", Production("||"))
     LOG_SGN_MUL = Rule("LOGIC MUL SIGN", Production("&&"))
@@ -211,6 +217,14 @@ if __name__ == '__main__':
                    Production("if", "(", COND, ")", SUGGESTION))
     SUGGESTION.add(Production(IF_OPER), Production(CYCLE))
 
+    _ = 'public class Comment1 { public static void main ( String[] args ) { a = 5 ; } }'
+    _1 = "a = 5 5 ;"
+    sug = 'int a = 5 ;'
+    __ =  earley(SUGGESTION, sug)
+    ___ = right_parsing(__)
+    print(___)
+
+'''
     F = Rule("F", Production('a'))
     T = Rule("T", Production(F))
     E = Rule("E", Production(T))
@@ -220,3 +234,61 @@ if __name__ == '__main__':
     E.add(Production(T, '+', E))
 
     print(right_parsing(earley(E, '( a + a ) * a')))
+'''
+
+'''
+def earley(rule, text):
+    table = [Column(i, tok) for i, tok in enumerate([None] + text.lower().split())]
+    table[0].add(State(GAMMA_RULE, Production(rule), 0, table[0]))
+
+    for i, col in enumerate(table):
+        for state in col:
+            if state.completed():
+                complete(col, state)
+            else:
+                term = state.next_term()
+                if isinstance(term, Rule):
+                    predict(col, term)
+                elif i + 1 < len(table):
+                    scan(table[i + 1], state, term)
+    for st in table[-1]:
+        if st.name == GAMMA_RULE and st.completed():
+            return table
+    else:
+        raise ValueError("parsing failed")
+
+def right_parsing(table):
+    state = None
+    for st in table[-1]:
+        if st.name == GAMMA_RULE and st.completed():
+            state = st
+    return sub_parsing([], table, state, state.end_column.index)
+
+def sub_parsing(acc, table, state: State, j: int):
+    acc.append(Rule(state.name,state.production))
+    k = len(state.production)
+    c = j
+    while k != 0:
+        Xk = state.production[k - 1]
+        if not isinstance(Xk, Rule):
+            k -= 1
+            c -= 1
+        else:
+            Ic = table[c]
+            # founding the state for Nonterminal Xk
+            for st in Ic:
+                if st.completed() and st.name == Xk.name:
+                    r = st.start_column.index
+                    Ir = table[r]
+                    # founding the previous state of Nonterminal Xk
+                    for prevst in Ir:
+                        expectedst = copy.copy(state)
+                        expectedst.dot_index = prevst.getindexXk(Xk)
+                        expectedst.start_column = prevst.start_column
+                        expectedst.end_column = prevst.end_column
+                        if not prevst.completed() and prevst == expectedst:
+                            sub_parsing(acc, table, st, c)
+                            k -= 1
+                            c = r
+    return acc
+'''
