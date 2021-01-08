@@ -7,6 +7,6 @@ public class If4 {
         else {
             a = -100;
             a = -200;
-        }
+        };
     }
 }

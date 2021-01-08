@@ -61,9 +61,10 @@ class SyntacticalAnalyzer:
         self.INT_NUM = Rule("INTEGER NUMBER", Production(self.DIGIT))
         self.INT_NUM.add(Production(self.DIGIT, self.INT_NUM))
         self.REAL_NUM = Rule("REAL NUMBER", Production(self.INT_NUM, ".", self.INT_NUM))
-        self.NUM = Rule("NUMBER", Production(self.INT_NUM), Production(self.REAL_NUM))
+        self.NUM = Rule("NUMBER", Production(self.INT_NUM), Production(self.REAL_NUM),
+                        Production(self.SIGN, self.INT_NUM), Production(self.SIGN, self.REAL_NUM))
         self.ARITH_SGN_SUM = Rule("ARITHMETIC SUM SIGN", Production("+"), Production("-"))
-        self.ARITH_SGN_MUL = Rule("ARITHMETIC MUL SIGN", Production("*"), Production("/"))
+        self.ARITH_SGN_MUL = Rule("ARITHMETIC MUL SIGN", Production("*"), Production("/"), Production("%"))
         self.ARITH_MUL = Rule("ARITHMETIC MULTIPLIER", Production(self.IDENTIFICATOR), Production(self.NUM))
         self.ARITH_SUM = Rule("ARITHMETIC ADDENUM", Production(self.ARITH_MUL))
         self.ARITH_SUM.add(Production(self.ARITH_MUL, self.ARITH_SGN_MUL, self.ARITH_SUM))
@@ -91,7 +92,7 @@ class SyntacticalAnalyzer:
         self.ARGS.add(Production(self.EXPR, ",", self.ARGS))
         self.STD_FUNCS = Rule("STANDARD FUNCTIONS", Production("Math.log", "(", self.ARGS, ")"),
                               Production("Math.pow", "(", self.ARGS, ")"),
-                              Production("Math.sqtr", "(", self.ARGS, ")"))
+                              Production("Math.sqrt", "(", self.ARGS, ")"))
         self.ARITH_MUL.add(Production(self.STD_FUNCS))
 
         self.UNARY_OPERS = Rule("UNARY OPERATORS", Production("++"), Production("--"))
@@ -99,10 +100,19 @@ class SyntacticalAnalyzer:
                           Production(self.EXPR, self.UNARY_OPERS))
         self.OUTPUT_FUNC = Rule("OUTPUT FUNCTION", Production("System.out.print", "(", self.STR_EXPR, ")"))
 
-        self.DECLARE_ONE_VAR = Rule("DECLARE A ONE VARIABLE", Production(self.TYPE_NAME, self.IDENTIFICATOR),
+        ''' 
+        '''
+        self.DECLARE_VAR_ONE = Rule("DECLARE A ONE VARIABLE", Production(self.IDENTIFICATOR),
+                                    Production(self.IDENTIFICATOR, "=", self.EXPR))
+        self.DECLARE_VAR_LIST = Rule("DECLARE A VARIABLE LIST", Production(self.DECLARE_VAR_ONE))
+        self.DECLARE_VAR_LIST.add(Production(self.DECLARE_VAR_ONE, ",", self.DECLARE_VAR_LIST))
+        self.DECLARE_VAR = Rule("DECLARE A VARIABLES", Production(self.TYPE_NAME, self.DECLARE_VAR_LIST))
+        '''
+        self.DECLARE_VAR_ONE = Rule("DECLARE A ONE VARIABLE", Production(self.TYPE_NAME, self.IDENTIFICATOR),
                                     Production(self.TYPE_NAME, self.IDENTIFICATOR, "=", self.EXPR))
-        self.DECLARE_VAR = Rule("DECLARE A VARIABLE", Production(self.DECLARE_ONE_VAR))
-        self.DECLARE_VAR.add(Production(self.DECLARE_ONE_VAR, ",", self.DECLARE_VAR))
+        self.DECLARE_VAR = Rule("DECLARE A VARIABLE", Production(self.DECLARE_VAR_ONE))
+        self.DECLARE_VAR.add(Production(self.DECLARE_VAR_ONE, ",", self.DECLARE_VAR))
+        '''
 
         self.SUGGESTION = Rule("SUGGESTION", Production(self.DECLARE_VAR), Production(self.OUTPUT_FUNC),
                                Production(self.ASSGN))
@@ -110,7 +120,10 @@ class SyntacticalAnalyzer:
         self.SUGGESTION_LIST.add(Production(self.SUGGESTION, ";", self.SUGGESTION_LIST))
 
         self.MAIN_FUNC = Rule("MAIN FUNCTION", Production("public", "static", "void", "main",
-                                                          "(", "String[]", "args", ")", "{", self.SUGGESTION_LIST, "}"))
+                                                          "(", "String[]", "args", ")", "{", self.SUGGESTION_LIST, "}"),
+                              Production("public", "static", "void", "main",
+                                         "(", "String[]", "args", ")", "{", "}")
+                              )
 
         self.PROGRAMM = Rule("PROGRAMM", Production("public", "class", self.IDENTIFICATOR, "{", self.MAIN_FUNC, "}"))
 
@@ -133,11 +146,14 @@ class SyntacticalAnalyzer:
                                                       self.SUGGESTION_LIST, "}"),
                             Production("if", "(", self.COND, ")", "{", self.SUGGESTION_LIST, "}",
                                        "else", "{", self.SUGGESTION_LIST, "}"),
+                            '''
                             Production("if", "(", self.COND, ")", "{", self.SUGGESTION_LIST, "}",
                                        "else", self.SUGGESTION),
                             Production("if", "(", self.COND, ")", self.SUGGESTION,
                                        "else", "{", self.SUGGESTION_LIST, "}"),
-                            Production("if", "(", self.COND, ")", self.SUGGESTION))
+                            Production("if", "(", self.COND, ")", self.SUGGESTION)
+                            '''
+                            )
         self.SUGGESTION.add(Production(self.IF_OPER), Production(self.CYCLE))
 
         self.GAMMA_RULE = u"GAMMA"

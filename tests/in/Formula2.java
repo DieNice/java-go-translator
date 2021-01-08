@@ -5,5 +5,6 @@ public class Formula2 {
         a = e - d;
         a = f / b;
         a = d % c;
+        a = e * g;
     }
 }

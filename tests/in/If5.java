@@ -9,6 +9,6 @@ public class If5 {
         else {
             a = -100;
             a = -200;
-        }
+        };
     }
 }

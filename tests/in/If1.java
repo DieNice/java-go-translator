@@ -4,6 +4,6 @@ public class If1 {
         a = 0;
         if (a < 0){
             a = 100;
-        }
+        };
     }
 }
