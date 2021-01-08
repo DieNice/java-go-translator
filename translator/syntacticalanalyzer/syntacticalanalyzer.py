@@ -32,7 +32,7 @@ GAMMA_RULE = u"GAMMA"
 
 
 def earley(rule, text):
-    table = [Column(i, tok) for i, tok in enumerate([None] + text.lower().split())]
+    table = [Column(i, tok) for i, tok in enumerate([None] + text.split())]
     #axiom = rule.name
     #predict(table[0], rule)
     table[0].add(State(GAMMA_RULE, Production(rule), 0, table[0]))
