@@ -1,9 +1,9 @@
 import re
 import sys
 
-from .env import Env
-from .lexicaltable import LexicalTable
-from .tok import Token
+from env import Env
+from lexicaltable import LexicalTable
+from tok import Token
 
 
 class LexicalAnalyzer:
@@ -53,6 +53,8 @@ class LexicalAnalyzer:
         (r'String\[\]', Token.TYPETOKEN[2]),
         (r'String', Token.TYPETOKEN[2]),
         (r'args', Token.TYPETOKEN[2]),
+        (r'if', Token.TYPETOKEN[2]),
+        (r'else', Token.TYPETOKEN[2]),
         (r'boolean', Token.TYPETOKEN[1]),
         (r'byte', Token.TYPETOKEN[1]),
         (r'char', Token.TYPETOKEN[1]),
