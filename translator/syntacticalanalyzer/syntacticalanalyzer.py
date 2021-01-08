@@ -1,294 +1,236 @@
-from column import Column
-from node import Node
-from production import Production
-from rule import Rule
-from state import State
+from .column import Column
+from .node import Node
+from .production import Production
+from .rule import Rule
+from .state import State
+from ..lexicalanalyzer.tok import Token
 import copy
 
 
-def predict(col, rule):
-    for prod in rule.productions:
-        col.add(State(rule.name, prod, 0, col))
+class SyntacticalAnalyzer:
 
+    def __init__(self):
+        self.LETTER = Rule("LETTER", Production("A"), Production("B"), Production("C"), Production("D"),
+                           Production("E"),
+                           Production("F"), Production("G"), Production("H"), Production("I"), Production("J"),
+                           Production("K"),
+                           Production("L"), Production("M"), Production("N"), Production("O"), Production("P"),
+                           Production("Q"),
+                           Production("R"), Production("S"), Production("T"), Production("U"), Production("V"),
+                           Production("W"),
+                           Production("X"), Production("Y"), Production("Z"),
+                           Production("a"), Production("b"), Production("c"), Production("d"), Production("e"),
+                           Production("f"),
+                           Production("g"), Production("h"), Production("i"), Production("j"), Production("k"),
+                           Production("l"),
+                           Production("m"), Production("n"), Production("o"), Production("p"), Production("q"),
+                           Production("r"),
+                           Production("s"), Production("t"), Production("u"), Production("v"), Production("w"),
+                           Production("x"),
+                           Production("y"), Production("z"))
 
-def scan(col, state, token):
-    if token != col.token:
-        return
-    col.add(State(state.name, state.production, state.dot_index + 1, state.start_column))
+        self.DIGIT = Rule("DIGIT", Production("1"), Production("2"), Production("3"), Production("4"), Production("5"),
+                          Production("6"), Production("7"), Production("8"), Production("9"), Production("0"))
+        self.SIGN = Rule("SIGN", Production("+"), Production("-"), Production(""))
+        self.BOOL_VAL = Rule("BOOL VALUE", Production("true"), Production("false"))
+        self.TYPE_NAME = Rule("TYPE NAME", Production("byte"), Production("short"), Production("int"),
+                              Production("long"),
+                              Production("float"), Production("double"), Production("char"), Production("boolean"),
+                              Production("String"))
+        self.ID_SYMBOLS = Rule("IDENTIFICATOR SYMBOLS", Production(self.DIGIT), Production(self.LETTER),
+                               Production("_"))
+        self.ID_SYMBOLS.add(Production(self.DIGIT, self.ID_SYMBOLS), Production(self.LETTER, self.ID_SYMBOLS),
+                            Production("_", self.ID_SYMBOLS))
+        self.IDENTIFICATOR = Rule("IDENTIFICATOR", Production("_", self.ID_SYMBOLS),
+                                  Production(self.LETTER, self.ID_SYMBOLS),
+                                  Production(self.LETTER))
 
+        self.STRING = Rule("STRING", Production(self.DIGIT), Production(self.SIGN), Production(self.LETTER))
+        self.STRING.add(Production(self.DIGIT, self.STRING), Production(self.SIGN, self.STRING),
+                        Production(self.LETTER, self.STRING))
+        self.STR_SGN_SUM = Rule("STRING SUM SIGN", Production("+"))
+        self.STR_SGN_MUL = Rule("STRING MUL SIGN", Production("*"))
+        self.STR_MUL = Rule("STRING MULTIPLIER", Production(self.IDENTIFICATOR), Production("'", self.STRING, "'"),
+                            Production("\"", self.STRING, "\""))
+        self.STR_SUM = Rule("STRING ADDENDUM", Production(self.STR_MUL))
+        self.STR_SUM.add(Production(self.STR_MUL, self.STR_SGN_MUL, self.STR_SUM))
+        self.STR_EXPR = Rule("STRING EXPRESSION", Production(self.STR_SUM))
+        self.STR_EXPR.add(Production(self.STR_SUM, self.STR_SGN_SUM, self.STR_EXPR))
+        self.STR_MUL.add(Production("(", self.STR_EXPR, ")"))
 
-def complete(col, state):
-    if not state.completed():
-        return
-    for st in state.start_column:
-        term = st.next_term()
-        if not isinstance(term, Rule):
-            continue
-        if term.name == state.name:
-            col.add(State(st.name, st.production, st.dot_index + 1, st.start_column))
+        self.INT_NUM = Rule("INTEGER NUMBER", Production(self.DIGIT))
+        self.INT_NUM.add(Production(self.DIGIT, self.INT_NUM))
+        self.REAL_NUM = Rule("REAL NUMBER", Production(self.INT_NUM, ".", self.INT_NUM))
+        self.NUM = Rule("NUMBER", Production(self.INT_NUM), Production(self.REAL_NUM))
+        self.ARITH_SGN_SUM = Rule("ARITHMETIC SUM SIGN", Production("+"), Production("-"))
+        self.ARITH_SGN_MUL = Rule("ARITHMETIC MUL SIGN", Production("*"), Production("/"))
+        self.ARITH_MUL = Rule("ARITHMETIC MULTIPLIER", Production(self.IDENTIFICATOR), Production(self.NUM))
+        self.ARITH_SUM = Rule("ARITHMETIC ADDENUM", Production(self.ARITH_MUL))
+        self.ARITH_SUM.add(Production(self.ARITH_MUL, self.ARITH_SGN_MUL, self.ARITH_SUM))
+        self.ARITH_EXPR = Rule("ARITHMETIC EXPRESSION", Production(self.ARITH_SUM))
+        self.ARITH_EXPR.add(Production(self.ARITH_SUM, self.ARITH_SGN_SUM, self.ARITH_EXPR))
+        self.ARITH_MUL.add(Production("(", self.ARITH_EXPR, ")"))
 
+        self.LOG_SGN_SUM = Rule("LOGIC SUM SIGN", Production("||"))
+        self.LOG_SGN_MUL = Rule("LOGIC MUL SIGN", Production("&&"))
+        self.LOG_SGN_CMP = Rule("LOGIC COMPARE SIGN", Production("=="), Production("!="), Production(">"),
+                                Production("<"), Production(">="), Production("<="))
+        self.LOG_MUL = Rule("LOGIC MULTIPLIER", Production(self.IDENTIFICATOR),
+                            Production(self.BOOL_VAL), Production(self.ARITH_EXPR, self.LOG_SGN_CMP, self.ARITH_EXPR))
+        self.LOG_SUM = Rule("LOGIC ADDENUM", Production(self.LOG_MUL))
+        self.LOG_SUM.add(Production(self.LOG_MUL, self.LOG_SGN_MUL, self.LOG_SUM))
+        self.LOG_EXPR = Rule("LOGIC EXPRESSION", Production(self.LOG_SUM))
+        self.LOG_EXPR.add(Production(self.LOG_SUM, self.LOG_SGN_SUM, self.LOG_EXPR))
+        self.LOG_MUL.add(Production(self.LOG_EXPR, self.LOG_SGN_CMP, self.LOG_EXPR),
+                         Production("(", self.LOG_EXPR, ")"))
 
-GAMMA_RULE = u"GAMMA"
+        self.EXPR = Rule("EXPRESSION", Production(self.STR_EXPR), Production(self.ARITH_EXPR),
+                         Production(self.LOG_EXPR))
 
+        self.ARGS = Rule("ARGUMENTS", Production(self.EXPR))
+        self.ARGS.add(Production(self.EXPR, ",", self.ARGS))
+        self.STD_FUNCS = Rule("STANDARD FUNCTIONS", Production("Math.log", "(", self.ARGS, ")"),
+                              Production("Math.pow", "(", self.ARGS, ")"),
+                              Production("Math.sqtr", "(", self.ARGS, ")"))
+        self.ARITH_MUL.add(Production(self.STD_FUNCS))
 
-def earley(rule, text):
-    table = [Column(i, tok) for i, tok in enumerate([None] + text.split())]
-    #axiom = rule.name
-    #predict(table[0], rule)
-    table[0].add(State(GAMMA_RULE, Production(rule), 0, table[0]))
+        self.UNARY_OPERS = Rule("UNARY OPERATORS", Production("++"), Production("--"))
+        self.ASSGN = Rule("ASSIGNMENT", Production(self.IDENTIFICATOR, "=", self.EXPR),
+                          Production(self.EXPR, self.UNARY_OPERS))
+        self.OUTPUT_FUNC = Rule("OUTPUT FUNCTION", Production("System.out.print", "(", self.STR_EXPR, ")"))
 
-    for i, col in enumerate(table):
-        for state in col:
-            if state.completed():
-                complete(col, state)
-            else:
-                term = state.next_term()
-                if isinstance(term, Rule):
-                    predict(col, term)
-                elif i + 1 < len(table):
-                    scan(table[i + 1], state, term)
-    for st in table[-1]:
-        if st.name == GAMMA_RULE and st.completed():
-            return table
-    else:
-        raise ValueError("parsing failed")
+        self.DECLARE_ONE_VAR = Rule("DECLARE A ONE VARIABLE", Production(self.TYPE_NAME, self.IDENTIFICATOR),
+                                    Production(self.TYPE_NAME, self.IDENTIFICATOR, "=", self.EXPR))
+        self.DECLARE_VAR = Rule("DECLARE A VARIABLE", Production(self.DECLARE_ONE_VAR))
+        self.DECLARE_VAR.add(Production(self.DECLARE_ONE_VAR, ",", self.DECLARE_VAR))
 
+        self.SUGGESTION = Rule("SUGGESTION", Production(self.DECLARE_VAR), Production(self.OUTPUT_FUNC),
+                               Production(self.ASSGN))
+        self.SUGGESTION_LIST = Rule("SUGGESTION_LIST", Production(self.SUGGESTION, ";"))
+        self.SUGGESTION_LIST.add(Production(self.SUGGESTION, ";", self.SUGGESTION_LIST))
 
-def right_parsing(table):
-    state = None
-    for st in table[-1]:
-        if st.name == GAMMA_RULE and st.completed():
-            state = st
-    return sub_parsing([], table, state, state.end_column.index)
+        self.MAIN_FUNC = Rule("MAIN FUNCTION", Production("public", "static", "void", "main",
+                                                          "(", "String[]", "args", ")", "{", self.SUGGESTION_LIST, "}"))
 
+        self.PROGRAMM = Rule("PROGRAMM", Production("public", "class", self.IDENTIFICATOR, "{", self.MAIN_FUNC, "}"))
 
-def sub_parsing(acc, table, state: State, j: int):
-    acc.append(Rule(state.name,state.production))
-    k = len(state.production)
-    c = j
-    breaked = False
-    while k != 0:
+        self.BREAK_OPERS = Rule("BREAK OPEARTORS", Production("break"), Production("continue"))
+        self.INIT_COUNT = Rule("INIT COUNTER", Production(""), Production(self.DECLARE_VAR), Production(self.ASSGN))
+        self.MOD_COUNT = Rule("MODIFY COUNTER", Production(""), Production(self.ASSGN))
+        self.COND = Rule("CONDITION", Production(self.LOG_EXPR))
+        self.CYCLE_FOR = Rule("CYCLE FOR", Production("for", "(", self.INIT_COUNT, ";",
+                                                      self.COND, ";", self.MOD_COUNT, ")", "{",
+                                                      self.SUGGESTION_LIST, "}"),
+                              Production("for", "(", self.INIT_COUNT, ";", self.COND, ";", self.MOD_COUNT,
+                                         ")", self.SUGGESTION))
+        self.CYCLE_WHILE = Rule("CYCLE WHILE", Production("while", "(", self.COND, ")", "{",
+                                                          self.SUGGESTION_LIST, "}"))
+        self.CYCLE_DO = Rule("CYCLE DO", Production("do", "{", self.SUGGESTION_LIST, "}",
+                                                    "while", "(", self.COND, ")", ))
+        self.CYCLE = Rule("CYCLE", Production(self.CYCLE_FOR), Production(self.CYCLE_DO), Production(self.CYCLE_WHILE))
+
+        self.IF_OPER = Rule("IF OPERATOR", Production("if", "(", self.COND, ")", "{",
+                                                      self.SUGGESTION_LIST, "}"),
+                            Production("if", "(", self.COND, ")", "{", self.SUGGESTION_LIST, "}",
+                                       "else", "{", self.SUGGESTION_LIST, "}"),
+                            Production("if", "(", self.COND, ")", "{", self.SUGGESTION_LIST, "}",
+                                       "else", self.SUGGESTION),
+                            Production("if", "(", self.COND, ")", self.SUGGESTION,
+                                       "else", "{", self.SUGGESTION_LIST, "}"),
+                            Production("if", "(", self.COND, ")", self.SUGGESTION))
+        self.SUGGESTION.add(Production(self.IF_OPER), Production(self.CYCLE))
+
+        self.GAMMA_RULE = u"GAMMA"
+
+    def predict(self, col, rule):
+        for prod in rule.productions:
+            col.add(State(rule.name, prod, 0, col))
+
+    def scan(self, col, state, token):
+        if token != col.token:
+            return
+        col.add(State(state.name, state.production, state.dot_index + 1, state.start_column))
+
+    def complete(self, col, state):
+        if not state.completed():
+            return
+        for st in state.start_column:
+            term = st.next_term()
+            if not isinstance(term, Rule):
+                continue
+            if term.name == state.name:
+                col.add(State(st.name, st.production, st.dot_index + 1, st.start_column))
+
+    def earley(self, rule, text):
+        table = [Column(i, tok) for i, tok in enumerate([None] + text.split())]
+        # axiom = rule.name
+        # predict(table[0], rule)
+        table[0].add(State(self.GAMMA_RULE, Production(rule), 0, table[0]))
+
+        for i, col in enumerate(table):
+            for state in col:
+                if state.completed():
+                    self.complete(col, state)
+                else:
+                    term = state.next_term()
+                    if isinstance(term, Rule):
+                        self.predict(col, term)
+                    elif i + 1 < len(table):
+                        self.scan(table[i + 1], state, term)
+        for st in table[-1]:
+            if st.name == self.GAMMA_RULE and st.completed():
+                return table
+        else:
+            raise ValueError("Parsing failed")
+
+    def right_parsing(self, table):
+        state = None
+        for st in table[-1]:
+            if st.name == self.GAMMA_RULE and st.completed():
+                state = st
+        return self.sub_parsing([], table, state, state.end_column.index)
+
+    def sub_parsing(self, acc, table, state: State, j: int):
+        acc.append(Rule(state.name, state.production))
+        k = len(state.production)
+        c = j
         breaked = False
-        Xk = state.production[k - 1]
-        if not isinstance(Xk, Rule):
-            k -= 1
-            c -= 1
-        else:
-            Ic = table[c]
-            # founding the state for Nonterminal Xk
-            for st in Ic:
-                if breaked:
-                    break
-                if st.completed() and st.name == Xk.name:
-                    r = st.start_column.index
-                    Ir = table[r]
-                    expectedst = copy.copy(state)
-                    expectedst.dot_index = k-1
-                    # founding the previous state of Nonterminal Xk
-                    for prevst in Ir:
-                        #exit from cycle
-                        if breaked:
-                            break
-                        if not prevst.completed() and prevst.isSame(expectedst):
-                            sub_parsing(acc, table, st, c)
-                            k -= 1
-                            c = r
-                            breaked = True
-    return acc
-
-if __name__ == '__main__':
-    LETTER = Rule("LETTER", Production("A"), Production("B"), Production("C"), Production("D"), Production("E"),
-                  Production("F"), Production("G"), Production("H"), Production("I"), Production("J"),
-                  Production("K"),
-                  Production("L"), Production("M"), Production("N"), Production("O"), Production("P"),
-                  Production("Q"),
-                  Production("R"), Production("S"), Production("T"), Production("U"), Production("V"),
-                  Production("W"),
-                  Production("X"), Production("Y"), Production("Z"),
-                  Production("a"), Production("b"), Production("c"), Production("d"), Production("e"),
-                  Production("f"),
-                  Production("g"), Production("h"), Production("i"), Production("j"), Production("k"),
-                  Production("l"),
-                  Production("m"), Production("n"), Production("o"), Production("p"), Production("q"),
-                  Production("r"),
-                  Production("s"), Production("t"), Production("u"), Production("v"), Production("w"),
-                  Production("x"),
-                  Production("y"), Production("z"))
-
-    DIGIT = Rule("DIGIT", Production("1"), Production("2"), Production("3"), Production("4"), Production("5"),
-                 Production("6"), Production("7"), Production("8"), Production("9"), Production("0"))
-    SIGN = Rule("SIGN", Production("+"), Production("-"), Production(""))
-    BOOL_VAL = Rule("BOOL VALUE", Production("true"), Production("false"))
-    TYPE_NAME = Rule("TYPE NAME", Production("byte"), Production("short"), Production("int"), Production("long"),
-                     Production("float"), Production("double"), Production("char"), Production("boolean"),
-                     Production("String"))
-    ID_SYMBOLS = Rule("IDENTIFICATOR SYMBOLS", Production(DIGIT), Production(LETTER), Production("_"))
-    ID_SYMBOLS.add(Production(DIGIT, ID_SYMBOLS), Production(LETTER, ID_SYMBOLS), Production("_", ID_SYMBOLS))
-    IDENTIFICATOR = Rule("IDENTIFICATOR", Production("_", ID_SYMBOLS), Production(LETTER, ID_SYMBOLS),
-                         Production(LETTER))
-
-    STRING = Rule("STRING", Production(DIGIT), Production(SIGN), Production(LETTER))
-    STRING.add(Production(DIGIT, STRING), Production(SIGN, STRING), Production(LETTER, STRING))
-    STR_SGN_SUM = Rule("STRING SUM SIGN", Production("+"))
-    STR_SGN_MUL = Rule("STRING MUL SIGN", Production("*"))
-    STR_MUL = Rule("STRING MULTIPLIER", Production(IDENTIFICATOR), Production("'", STRING, "'"),
-                   Production("\"", STRING, "\""))
-    STR_SUM = Rule("STRING ADDENDUM", Production(STR_MUL))
-    STR_SUM.add(Production(STR_MUL, STR_SGN_MUL, STR_SUM))
-    STR_EXPR = Rule("STRING EXPRESSION", Production(STR_SUM))
-    STR_EXPR.add(Production(STR_SUM, STR_SGN_SUM, STR_EXPR))
-    STR_MUL.add(Production("(", STR_EXPR, ")"))
-
-    INT_NUM = Rule("INTEGER NUMBER", Production(DIGIT))
-    INT_NUM.add(Production(DIGIT, INT_NUM))
-    REAL_NUM = Rule("REAL NUMBER", Production(INT_NUM, ".", INT_NUM))
-    NUM = Rule("NUMBER", Production(INT_NUM), Production(REAL_NUM))
-    ARITH_SGN_SUM = Rule("ARITHMETIC SUM SIGN", Production("+"), Production("-"))
-    ARITH_SGN_MUL = Rule("ARITHMETIC MUL SIGN", Production("*"), Production("/"))
-    ARITH_MUL = Rule("ARITHMETIC MULTIPLIER", Production(IDENTIFICATOR), Production(NUM))
-    ARITH_SUM = Rule("ARITHMETIC ADDENUM", Production(ARITH_MUL))
-    ARITH_SUM.add(Production(ARITH_MUL, ARITH_SGN_MUL, ARITH_SUM))
-    ARITH_EXPR = Rule("ARITHMETIC EXPRESSION", Production(ARITH_SUM))
-    ARITH_EXPR.add(Production(ARITH_SUM, ARITH_SGN_SUM, ARITH_EXPR))
-    ARITH_MUL.add(Production("(", ARITH_EXPR, ")"))
-
-    LOG_SGN_SUM = Rule("LOGIC SUM SIGN", Production("||"))
-    LOG_SGN_MUL = Rule("LOGIC MUL SIGN", Production("&&"))
-    LOG_SGN_CMP = Rule("LOGIC COMPARE SIGN", Production("=="), Production("!="), Production(">"),
-                       Production("<"), Production(">="), Production("<="))
-    LOG_MUL = Rule("LOGIC MULTIPLIER", Production(IDENTIFICATOR),
-                   Production(BOOL_VAL), Production(ARITH_EXPR, LOG_SGN_CMP, ARITH_EXPR))
-    LOG_SUM = Rule("LOGIC ADDENUM", Production(LOG_MUL))
-    LOG_SUM.add(Production(LOG_MUL, LOG_SGN_MUL, LOG_SUM))
-    LOG_EXPR = Rule("LOGIC EXPRESSION", Production(LOG_SUM))
-    LOG_EXPR.add(Production(LOG_SUM, LOG_SGN_SUM, LOG_EXPR))
-    LOG_MUL.add(Production(LOG_EXPR, LOG_SGN_CMP, LOG_EXPR), Production("(", LOG_EXPR, ")"))
-
-    EXPR = Rule("EXPRESSION", Production(STR_EXPR), Production(ARITH_EXPR), Production(LOG_EXPR))
-
-    ARGS = Rule("ARGUMENTS", Production(EXPR))
-    ARGS.add(Production(EXPR, ",", ARGS))
-    STD_FUNCS = Rule("STANDARD FUNCTIONS", Production("Math.log", "(", ARGS, ")"),
-                     Production("Math.pow", "(", ARGS, ")"),
-                     Production("Math.sqtr", "(", ARGS, ")"))
-    ARITH_MUL.add(Production(STD_FUNCS))
-
-    UNARY_OPERS = Rule("UNARY OPERATORS", Production("++"), Production("--"))
-    ASSGN = Rule("ASSIGNMENT", Production(IDENTIFICATOR, "=", EXPR), Production(EXPR, UNARY_OPERS))
-    OUTPUT_FUNC = Rule("OUTPUT FUNCTION", Production("System.out.print", "(", STR_EXPR, ")"))
-
-    DECLARE_ONE_VAR = Rule("DECLARE A ONE VARIABLE", Production(TYPE_NAME, IDENTIFICATOR),
-                           Production(TYPE_NAME, IDENTIFICATOR, "=", EXPR))
-    DECLARE_VAR = Rule("DECLARE A VARIABLE", Production(DECLARE_ONE_VAR))
-    DECLARE_VAR.add(Production(DECLARE_ONE_VAR, ",", DECLARE_VAR))
-
-    SUGGESTION = Rule("SUGGESTION", Production(DECLARE_VAR), Production(OUTPUT_FUNC), Production(ASSGN))
-    SUGGESTION_LIST = Rule("SUGGESTION_LIST", Production(SUGGESTION, ";"))
-    SUGGESTION_LIST.add(Production(SUGGESTION, ";", SUGGESTION_LIST))
-
-    MAIN_FUNC = Rule("MAIN FUNCTION", Production("public", "static", "void", "main",
-                                                 "(", "String[]", "args", ")", "{", SUGGESTION_LIST, "}"))
-
-    PROGRAMM = Rule("PROGRAMM", Production("public", "class", IDENTIFICATOR, "{", MAIN_FUNC, "}"))
-
-    BREAK_OPERS = Rule("BREAK OPEARTORS", Production("break"), Production("continue"))
-    INIT_COUNT = Rule("INIT COUNTER", Production(""), Production(DECLARE_VAR), Production(ASSGN))
-    MOD_COUNT = Rule("MODIFY COUNTER", Production(""), Production(ASSGN))
-    COND = Rule("CONDITION", Production(LOG_EXPR))
-    CYCLE_FOR = Rule("CYCLE FOR", Production("for", "(", INIT_COUNT, ";",
-                                             COND, ";", MOD_COUNT, ")", "{",
-                                             SUGGESTION_LIST, "}"),
-                     Production("for", "(", INIT_COUNT, ";", COND, ";", MOD_COUNT,
-                                ")", SUGGESTION))
-    CYCLE_WHILE = Rule("CYCLE WHILE", Production("while", "(", COND, ")", "{",
-                                                 SUGGESTION_LIST, "}"))
-    CYCLE_DO = Rule("CYCLE DO", Production("do", "{", SUGGESTION_LIST, "}",
-                                           "while", "(", COND, ")", ))
-    CYCLE = Rule("CYCLE", Production(CYCLE_FOR), Production(CYCLE_DO), Production(CYCLE_WHILE))
-
-    IF_OPER = Rule("IF OPERATOR", Production("if", "(", COND, ")", "{",
-                                             SUGGESTION_LIST, "}"),
-                   Production("if", "(", COND, ")", "{", SUGGESTION_LIST, "}",
-                              "else", "{", SUGGESTION_LIST, "}"),
-                   Production("if", "(", COND, ")", "{", SUGGESTION_LIST, "}",
-                              "else", SUGGESTION),
-                   Production("if", "(", COND, ")", SUGGESTION,
-                              "else", "{", SUGGESTION_LIST, "}"),
-                   Production("if", "(", COND, ")", SUGGESTION))
-    SUGGESTION.add(Production(IF_OPER), Production(CYCLE))
-
-    _ = 'public class Comment1 { public static void main ( String[] args ) { a = 5 ; } }'
-    _1 = "a = 5 5 ;"
-    sug = 'int a = 5 ;'
-    __ =  earley(SUGGESTION, sug)
-    ___ = right_parsing(__)
-    print(___)
-
-'''
-    F = Rule("F", Production('a'))
-    T = Rule("T", Production(F))
-    E = Rule("E", Production(T))
-    T.add(Production(F, '*', T))
-    E.add(Production(T))
-    F.add(Production('(', E, ')'))
-    E.add(Production(T, '+', E))
-
-    print(right_parsing(earley(E, '( a + a ) * a')))
-'''
-
-'''
-def earley(rule, text):
-    table = [Column(i, tok) for i, tok in enumerate([None] + text.lower().split())]
-    table[0].add(State(GAMMA_RULE, Production(rule), 0, table[0]))
-
-    for i, col in enumerate(table):
-        for state in col:
-            if state.completed():
-                complete(col, state)
+        while k != 0:
+            breaked = False
+            Xk = state.production[k - 1]
+            if not isinstance(Xk, Rule):
+                k -= 1
+                c -= 1
             else:
-                term = state.next_term()
-                if isinstance(term, Rule):
-                    predict(col, term)
-                elif i + 1 < len(table):
-                    scan(table[i + 1], state, term)
-    for st in table[-1]:
-        if st.name == GAMMA_RULE and st.completed():
-            return table
-    else:
-        raise ValueError("parsing failed")
-
-def right_parsing(table):
-    state = None
-    for st in table[-1]:
-        if st.name == GAMMA_RULE and st.completed():
-            state = st
-    return sub_parsing([], table, state, state.end_column.index)
-
-def sub_parsing(acc, table, state: State, j: int):
-    acc.append(Rule(state.name,state.production))
-    k = len(state.production)
-    c = j
-    while k != 0:
-        Xk = state.production[k - 1]
-        if not isinstance(Xk, Rule):
-            k -= 1
-            c -= 1
-        else:
-            Ic = table[c]
-            # founding the state for Nonterminal Xk
-            for st in Ic:
-                if st.completed() and st.name == Xk.name:
-                    r = st.start_column.index
-                    Ir = table[r]
-                    # founding the previous state of Nonterminal Xk
-                    for prevst in Ir:
+                Ic = table[c]
+                # founding the state for Nonterminal Xk
+                for st in Ic:
+                    if breaked:
+                        break
+                    if st.completed() and st.name == Xk.name:
+                        r = st.start_column.index
+                        Ir = table[r]
                         expectedst = copy.copy(state)
-                        expectedst.dot_index = prevst.getindexXk(Xk)
-                        expectedst.start_column = prevst.start_column
-                        expectedst.end_column = prevst.end_column
-                        if not prevst.completed() and prevst == expectedst:
-                            sub_parsing(acc, table, st, c)
-                            k -= 1
-                            c = r
-    return acc
-'''
+                        expectedst.dot_index = k - 1
+                        # founding the previous state of Nonterminal Xk
+                        for prevst in Ir:
+                            # exit from cycle
+                            if breaked:
+                                break
+                            if not prevst.completed() and prevst.isSame(expectedst):
+                                self.sub_parsing(acc, table, st, c)
+                                k -= 1
+                                c = r
+                                breaked = True
+        return acc
+
+    def lextableToString(self, lextable):
+        '''return a special format string for earley alghoritm from lexical table'''
+        res = ""
+        for i in lextable:
+            if i.type == Token.TYPETOKEN[0] or i.type == Token.TYPETOKEN[3] or i.type == Token.TYPETOKEN[5]:
+                for j in i.name:
+                    res += ' ' + j
+            else:
+                res += ' ' + i.name
+        return res
