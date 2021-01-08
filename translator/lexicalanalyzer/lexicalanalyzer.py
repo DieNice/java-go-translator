@@ -17,7 +17,7 @@ class LexicalAnalyzer:
         (r'\}', Token.TYPETOKEN[6]),
         (r'\{', Token.TYPETOKEN[6]),
         (r'\;', Token.TYPETOKEN[6]),
-        (r'\"[A-Za-z][A-Za-z0-9_ ]*\"', Token.TYPETOKEN[5]),
+        (r'\'[A-Za-z][A-Za-z0-9_ ]*\'', Token.TYPETOKEN[5]),
         (r'\'', Token.TYPETOKEN[6]),
         (r'\,', Token.TYPETOKEN[6]),
         (r'\"', Token.TYPETOKEN[6]),
