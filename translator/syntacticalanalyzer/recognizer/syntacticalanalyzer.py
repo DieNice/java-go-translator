@@ -177,10 +177,9 @@ class SyntacticalAnalyzer:
             if term.name == state.name:
                 col.add(State(st.name, st.production, st.dot_index + 1, st.start_column))
 
+
     def earley(self, rule, text):
         table = [Column(i, tok) for i, tok in enumerate([None] + text.split())]
-        # axiom = rule.name
-        # predict(table[0], rule)
         table[0].add(State(self.GAMMA_RULE, Production(rule), 0, table[0]))
 
         for i, col in enumerate(table):
@@ -188,6 +187,7 @@ class SyntacticalAnalyzer:
                 if state.completed():
                     self.complete(col, state)
                 else:
+                    indextoken = i
                     term = state.next_term()
                     if isinstance(term, Rule):
                         self.predict(col, term)
@@ -197,7 +197,9 @@ class SyntacticalAnalyzer:
             if st.name == self.GAMMA_RULE and st.completed():
                 return table
         else:
-            raise ValueError("Parsing failed")
+            raise ValueError(
+                "SyntaxError \'{} {}\':invalid syntax, Expected:{}".format(table[indextoken].token,
+                                                                       table[indextoken + 1].token, term))
 
     def right_parsing(self, table):
         state = None
