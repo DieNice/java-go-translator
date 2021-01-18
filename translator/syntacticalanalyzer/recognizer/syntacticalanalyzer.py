@@ -4,6 +4,7 @@ from .production import Production
 from .rule import Rule
 from .state import State
 from translator.lexicalanalyzer.tok import Token
+from .syntacticaltree import SyntacticalTree
 import copy
 
 
@@ -250,3 +251,6 @@ class SyntacticalAnalyzer:
             else:
                 res += ' ' + i.name
         return res
+
+    def toTree(self, list):
+        return SyntacticalTree(list)

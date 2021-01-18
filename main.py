@@ -14,8 +14,9 @@ if __name__ == '__main__':
                 print('file: {},data {}'.format(i[0], res[0]))
                 textnow = synanalyzer.lextableToString(res[0])
                 earlyres = synanalyzer.earley(rule=synanalyzer.PROGRAMM, text=textnow)
-                tree = synanalyzer.right_parsing(earlyres)
-                print(tree)
+                parselist = synanalyzer.right_parsing(earlyres)
+                tree = synanalyzer.toTree(parselist.copy())
+                print(list)
             except:
                 print('error in file: {}'.format(i[0]))
     else:

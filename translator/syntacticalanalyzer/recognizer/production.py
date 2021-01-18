@@ -12,7 +12,7 @@ class Production(object):
         return iter(self.terms)
 
     def __repr__(self):
-        return " ".join(str(t) for t in self.terms)
+        return ", ".join(str(t) for t in self.terms)
 
     def __eq__(self, other):
         if not isinstance(other, Production):
