@@ -1,0 +1,2 @@
+class ErrorsAnalyzer:
+    pass

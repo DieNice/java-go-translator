@@ -3,7 +3,7 @@ from .node import Node
 from .production import Production
 from .rule import Rule
 from .state import State
-from ..lexicalanalyzer.tok import Token
+from translator.lexicalanalyzer.tok import Token
 import copy
 
 
