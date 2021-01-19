@@ -252,5 +252,5 @@ class SyntacticalAnalyzer:
                 res += ' ' + i.name
         return res
 
-    def toTree(self, list):
-        return SyntacticalTree(list)
+    def toTree(self, rules):
+        return SyntacticalTree(rules)

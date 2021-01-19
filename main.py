@@ -16,7 +16,7 @@ if __name__ == '__main__':
                 earlyres = synanalyzer.earley(rule=synanalyzer.PROGRAMM, text=textnow)
                 parselist = synanalyzer.right_parsing(earlyres)
                 tree = synanalyzer.toTree(parselist.copy())
-                print(list)
+                print(tree)
             except:
                 print('error in file: {}'.format(i[0]))
     else:
