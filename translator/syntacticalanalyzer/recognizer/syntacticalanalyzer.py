@@ -38,14 +38,17 @@ class SyntacticalAnalyzer:
                               Production("long"),
                               Production("float"), Production("double"), Production("char"), Production("boolean"),
                               Production("String"))
-        self.ID_SYMBOLS = Rule("IDENTIFICATOR SYMBOLS", Production(self.DIGIT), Production(self.LETTER),
-                               Production("_"))
-        self.ID_SYMBOLS.add(Production(self.DIGIT, self.ID_SYMBOLS), Production(self.LETTER, self.ID_SYMBOLS),
-                            Production("_", self.ID_SYMBOLS))
-        self.IDENTIFICATOR = Rule("IDENTIFICATOR", Production("_", self.ID_SYMBOLS),
-                                  Production(self.LETTER, self.ID_SYMBOLS),
+        self.DIGIT_ID = Rule("DIGIT_ID", Production(self.DIGIT))
+        self.IDENTIFICATOR = Rule("IDENTIFICATOR", Production("_", self.DIGIT_ID),
+                                  Production(self.LETTER, self.DIGIT_ID),
                                   Production(self.LETTER))
+        self.DIGIT_ID.add(Production(self.DIGIT, self.DIGIT_ID), Production(self.DIGIT, self.IDENTIFICATOR))
+        self.IDENTIFICATOR.add(Production("_", self.IDENTIFICATOR), Production(self.LETTER, self.IDENTIFICATOR))
 
+        for i in self.IDENTIFICATOR.productions:
+            for j in range(len(i)):
+                if not i.terms[j]:
+                    i.terms[j] = self.IDENTIFICATOR
         self.STRING = Rule("STRING", Production(self.DIGIT), Production(self.SIGN), Production(self.LETTER))
         self.STRING.add(Production(self.DIGIT, self.STRING), Production(self.SIGN, self.STRING),
                         Production(self.LETTER, self.STRING))
@@ -180,8 +183,6 @@ class SyntacticalAnalyzer:
 
     def earley(self, rule, text):
         table = [Column(i, tok) for i, tok in enumerate([None] + text.split())]
-        # axiom = rule.name
-        # predict(table[0], rule)
         table[0].add(State(self.GAMMA_RULE, Production(rule), 0, table[0]))
 
         for i, col in enumerate(table):
@@ -209,36 +210,34 @@ class SyntacticalAnalyzer:
 
     def sub_parsing(self, acc, table, state: State, j: int):
         acc.append(Rule(state.name, state.production))
-        k = len(state.production)
+        k = len(state.production) - 1
         c = j
-        breaked = False
-        while k != 0:
-            breaked = False
-            Xk = state.production[k - 1]
+        while k >= 0:
+            Xk = state.production[k]
             if not isinstance(Xk, Rule):
                 k -= 1
                 c -= 1
             else:
                 Ic = table[c]
                 # founding the state for Nonterminal Xk
+                searchstate = None
+                searchflag = False
                 for st in Ic:
-                    if breaked:
+                    if searchflag:
                         break
                     if st.completed() and st.name == Xk.name:
                         r = st.start_column.index
                         Ir = table[r]
-                        expectedst = copy.copy(state)
-                        expectedst.dot_index = k - 1
                         # founding the previous state of Nonterminal Xk
                         for prevst in Ir:
-                            # exit from cycle
-                            if breaked:
+                            if state.production == prevst.production and prevst.dot_index == k and state.name == prevst.name \
+                                    and state.start_column == prevst.start_column:
+                                searchstate = st
+                                searchflag = True
                                 break
-                            if not prevst.completed() and prevst.isSame(expectedst):
-                                self.sub_parsing(acc, table, st, c)
-                                k -= 1
-                                c = r
-                                breaked = True
+                self.sub_parsing(acc, table, searchstate, c)
+                k -= 1
+                c = r
         return acc
 
     def lextableToString(self, lextable):
