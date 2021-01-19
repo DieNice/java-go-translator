@@ -114,9 +114,10 @@ class LexicalAnalyzer:
                             if text == '}':
                                 ptr = ptr.prev
                             token = Token(text, tag)
-                            lextable.append(token)
                             if tag == Token.TYPETOKEN[0] and ptr is not None:
                                 ptr.addid(token.name, token.type)
+                                token.addlinkidtable(ptr)
+                            lextable.append(token)
                         break
                 if not match:
                     sys.stderr.write('Illegal character \'{}\',{}: %s\n'.format(namefile, pos) % characters[pos])

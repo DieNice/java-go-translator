@@ -1,9 +1,13 @@
 class Token:
     TYPETOKEN = ("ID", "RESERVED", "KEYWORD", "NUM", "OPERATION", "STRING", "DELIMETER")
 
-    def __init__(self, nametoken, typetoken):
+    def __init__(self, nametoken, typetoken, lidtable=None):
         self.name = nametoken
         self.type = typetoken
+        self.linkidtable = lidtable
+
+    def addlinkidtable(self, linkidtable):
+        self.linkidtable = linkidtable
 
     def __str__(self):
         return "{},{}".format(self.name, self.type)
