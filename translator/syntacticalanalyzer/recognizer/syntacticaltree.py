@@ -1,4 +1,5 @@
 from .production import Production
+from .rule import Rule
 
 class Node:
     def __init__(self, left, right = [], prev = None):
@@ -35,6 +36,23 @@ class SyntacticalTree:
         list.pop(0)
         self.root.listToTree(list)
         pass
+
+    def printTree(self):
+        def search(ptr: Node, level):
+            if ptr.prev is None:
+                l = 0
+            else:
+                if isinstance(ptr.prev.left, Rule):
+                    l = len(ptr.prev.left.name)
+                else:
+                    l = len(ptr.prev.left)
+            print(str(level) + ':' + '|' + level * ' ' + '├-' + str(ptr.left))
+            if ptr.childs:
+                for i in ptr.childs:
+                    search(i, level + 1)
+
+        level = 0
+        search(self.root, level)
 
     def __str__(self):
         return 'None'
