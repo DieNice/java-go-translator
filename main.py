@@ -1,6 +1,7 @@
 from translator.io.filereader import FileReader
 from translator.lexicalanalyzer.lexicalanalyzer import LexicalAnalyzer
 from translator.syntacticalanalyzer.recognizer.syntacticalanalyzer import SyntacticalAnalyzer
+from translator.syntacticalanalyzer.semanticanalyzer.syntacticstructure import SyntacticsStructure
 
 if __name__ == '__main__':
     lexer = LexicalAnalyzer()
@@ -18,6 +19,8 @@ if __name__ == '__main__':
                 print(parselist)
                 tree = synanalyzer.toTree(parselist.copy())
                 tree.printTree()
+                ast = SyntacticsStructure(tree)
+                ast.printast()
             except:
                 print('error in file: {}'.format(i[0]))
     else:
