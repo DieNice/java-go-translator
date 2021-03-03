@@ -17,9 +17,9 @@ if __name__ == '__main__':
                 earlyres = synanalyzer.earley(rule=synanalyzer.PROGRAMM, text=textnow)
                 parselist = synanalyzer.right_parsing(earlyres)
                 print(parselist)
-                tree = synanalyzer.toTree(parselist.copy())
-                tree.printTree()
-                ast = SyntacticsStructure(tree)
+                dirtytree = synanalyzer.toTree(parselist)
+                dirtytree.printTree()
+                ast = SyntacticsStructure(dirtytree)
                 ast.printast()
             except:
                 print('error in file: {}'.format(i[0]))
