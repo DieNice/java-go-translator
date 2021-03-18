@@ -162,8 +162,7 @@ class SyntacticsStructure:
 
     def _reformattree(self, ptr: NodeStruct) -> None:
         '''Modification of algorithm for converting an output tree into an operation tree https://studopedia.su/14_133217_derevo-razbora-preobrazovanie-dereva-razbora-v-derevo-operatsiy.html'''
-        self.printast()
-
+        #self.printast()
         while not self._checkcomplete():  # step 1
             while True:
                 lastnode = self.getlastnonterm(ptr)  # step 2
