@@ -78,7 +78,7 @@ class SyntacticsStructure:
             elif self._getoperationchildcount(ptr) > 0:
                 if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations:
                     return True
-                if len(ptr.childs) == 2 and ptr.childs[0].name in self.unaroperations:
+                if len(ptr.childs) == 2 and (ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
                     return True
         return False
 
