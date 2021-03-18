@@ -60,21 +60,27 @@ class SyntacticsStructure:
         self.uselessterms = ["public", "static", "void", "main", "(", "String[]", "args", ")", "{", "}", "class", ",",
                              "if",
                              "System.out.print", "System.out.println", "\'", "for", "while", "\"", ";", "do"]
-        self.operations = ['+', '-', '*', '/', '%', '++', '--', '>', '<', '>=', '<=', '==', '!=', '&&', '||', '!', '=']
+        self.operations = ['+', '-', '*', '/', '%', '>', '<', '>=', '<=', '==', '!=', '&&', '||', '=']
+        self.unaroperations = ['!', '++', '--']
         self.root = self._copytree(stree)
         self._reformattree(self.root)
 
     def _isoperation(self, ptr: NodeStruct) -> bool:
         '''Check if the node has signed descendants'''
         if self._havealonechild(ptr):
-            if ptr.childs[0].name in self.operations:
+            if ptr.childs[0].name in self.operations + self.unaroperations:
                 return True
         else:
-            opcount = 0
-            for i in ptr.childs:
-                if i.name in self.operations:
-                    opcount += 1
-            return opcount == 1
+            if self._getoperationchildcount(ptr) == 1:
+                i = self._getoperationindex(ptr)
+                if ptr.childs[i].childs == []:
+                    return True
+            elif self._getoperationchildcount(ptr) > 0:
+                if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations:
+                    return True
+                if len(ptr.childs) == 2 and ptr.childs[0].name in self.unaroperations:
+                    return True
+        return False
 
     def _deleteoperationterm(self, ptr: NodeStruct) -> None:
         '''Delete operation term in Node'''
@@ -121,6 +127,21 @@ class SyntacticsStructure:
         '''Does a node have a single descendant node'''
         return len(ptr.childs) == 1
 
+    def _getoperationchildcount(self, ptr: NodeStruct) -> int:
+        '''Does a node have a single operation descendant node'''
+        opcount = 0
+        for i in ptr.childs:
+            if i.name in self.operations:
+                opcount += 1
+        return opcount
+
+    def _getoperationindex(self, ptr: NodeStruct) -> int:
+        '''Does a node have a single operation descendant node'''
+        for i, t in enumerate(ptr.childs):
+            if t.name in self.operations:
+                return i
+        return -1
+
     def _havenonterminalchilds(self, ptr: NodeStruct) -> bool:
         '''check non terminal childs of ptr Node'''
 
@@ -141,6 +162,8 @@ class SyntacticsStructure:
 
     def _reformattree(self, ptr: NodeStruct) -> None:
         '''Modification of algorithm for converting an output tree into an operation tree https://studopedia.su/14_133217_derevo-razbora-preobrazovanie-dereva-razbora-v-derevo-operatsiy.html'''
+        self.printast()
+
         while not self._checkcomplete():  # step 1
             while True:
                 lastnode = self.getlastnonterm(ptr)  # step 2
@@ -206,4 +229,5 @@ class SyntacticsStructure:
                     search(i, level + 1)
 
         level = 0
+        print()
         search(self.root, level)
