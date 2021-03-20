@@ -174,14 +174,21 @@ class SyntacticsStructure:
                 elif self._isoperation(lastnode):  # step 5
                     self._deleteoperationterm(lastnode)
                     self._reformattree(ptr)
-                elif lastnode.isNonterminal == True and lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "IDENTIFICATOR":
-                    prevbuf = lastnode.prev
-                    lastnode.prev.childs.remove(lastnode)
-                    for child in lastnode.childs:
-                        child.prev = prevbuf
-                        prevbuf.childs.append(child)
                 elif lastnode.isNonterminal == True:
-                    lastnode.me.isNonterminal = False
+                    if (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "IDENTIFICATOR") or \
+                            (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "DIGIT_ID") or \
+                            (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "IDENTIFICATOR") or \
+                            (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "DIGIT_ID") or \
+                            (lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "INTEGER NUMBER") :
+                            #(lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "REAL NUMBER") \
+
+                        prevbuf = lastnode.prev
+                        lastnode.prev.childs.remove(lastnode)
+                        for child in lastnode.childs:
+                            child.prev = prevbuf
+                            prevbuf.childs.append(child)
+                    else :
+                        lastnode.me.isNonterminal = False
                 elif not self._havenonterminalchilds(lastnode):  # step 6
                     break
                 break
