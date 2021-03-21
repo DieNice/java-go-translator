@@ -7,12 +7,13 @@ if __name__ == '__main__':
     lexer = LexicalAnalyzer()
     synanalyzer = SyntacticalAnalyzer()
     reader = FileReader()
-    indata = reader.read(namepattern='.java') #[^E].*
+    indata = reader.read(namepattern='Cycle2.java') #[^E].*
     if type(indata) is list:
         for i in indata:
             try:
                 res = lexer.skan(i)
                 print('file: {},data {}'.format(i[0], res[0]))
+                res[1].printenv()
                 textnow = synanalyzer.lextableToString(res[0])
                 earlyres = synanalyzer.earley(rule=synanalyzer.PROGRAMM, text=textnow)
                 parselist = synanalyzer.right_parsing(earlyres)
