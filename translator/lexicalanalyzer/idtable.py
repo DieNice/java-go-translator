@@ -31,9 +31,9 @@ class IdTable:
         self.childs.append(new)
 
     def __str__(self):
-        res = ''
+        res = '|'
         for i in self.table:
-            res = res + str(i) + ':' + str(self.table[i]) + '\n'
+            res = res + str(i) + ':' + str(self.table[i]) + '|'
         return res
 
     def __eq__(self, other):

@@ -32,3 +32,15 @@ class Env:
         if not isinstance(other, Env):
             raise Exception("comparable object isn't Env")
         return self.root == other.root
+
+    def printenv(self):
+        '''Output of ast tree'''
+        def search(ptr: IdTable, level):
+            print(str(level) + ':' + '|' + level * ' ' + '├-' + str(ptr))
+            if ptr.childs:
+                for i in ptr.childs:
+                    search(i, level + 1)
+
+        level = 0
+        print()
+        search(self.root, level)
