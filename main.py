@@ -1,4 +1,5 @@
 from translator.io.filereader import FileReader
+from translator.io.filewriter import FileWriter
 from translator.lexicalanalyzer.lexicalanalyzer import LexicalAnalyzer
 from translator.syntacticalanalyzer.recognizer.syntacticalanalyzer import SyntacticalAnalyzer
 from translator.syntacticalanalyzer.semanticanalyzer.syntacticstructure import SyntacticsStructure
@@ -7,7 +8,8 @@ if __name__ == '__main__':
     lexer = LexicalAnalyzer()
     synanalyzer = SyntacticalAnalyzer()
     reader = FileReader()
-    indata = reader.read(namepattern='Cycle2.java') #[^E].*
+    indata = reader.read(namepattern='Cycle2.java')  # [^E].*
+    outdata = []
     if type(indata) is list:
         for i in indata:
             try:
@@ -22,7 +24,10 @@ if __name__ == '__main__':
                 dirtytree.printTree()
                 ast = SyntacticsStructure(dirtytree)
                 ast.printast()
+                # outdata.append((i[0], 'Hello golang!'))
             except:
                 print('error in file: {}'.format(i[0]))
+        # writer = FileWriter()
+        # writer.write(outdata)
     else:
         lexer.skan(indata)
