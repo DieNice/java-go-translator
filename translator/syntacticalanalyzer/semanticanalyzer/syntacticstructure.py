@@ -180,7 +180,8 @@ class SyntacticsStructure:
                             or (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "DIGIT_ID") \
                             or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "IDENTIFICATOR") \
                             or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "DIGIT_ID") \
-                            or (lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "INTEGER NUMBER"):
+                            or (lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "INTEGER NUMBER") \
+                            or (lastnode.name == "STRING" and lastnode.prev.name == "STRING"):
                         prevbuf = lastnode.prev
                         lastnode.prev.childs.remove(lastnode)
                         for child in lastnode.childs:
