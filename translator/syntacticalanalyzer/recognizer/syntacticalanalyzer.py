@@ -149,14 +149,7 @@ class SyntacticalAnalyzer:
         self.IF_OPER = Rule("IF OPERATOR", Production("if", "(", self.COND, ")", "{",
                                                       self.SUGGESTION_LIST, "}"),
                             Production("if", "(", self.COND, ")", "{", self.SUGGESTION_LIST, "}",
-                                       "else", "{", self.SUGGESTION_LIST, "}"),
-                            '''
-                            Production("if", "(", self.COND, ")", "{", self.SUGGESTION_LIST, "}",
-                                       "else", self.SUGGESTION),
-                            Production("if", "(", self.COND, ")", self.SUGGESTION,
-                                       "else", "{", self.SUGGESTION_LIST, "}"),
-                            Production("if", "(", self.COND, ")", self.SUGGESTION)
-                            '''
+                                       "else", "{", self.SUGGESTION_LIST, "}")
                             )
         self.SUGGESTION.add(Production(self.IF_OPER), Production(self.CYCLE))
 
