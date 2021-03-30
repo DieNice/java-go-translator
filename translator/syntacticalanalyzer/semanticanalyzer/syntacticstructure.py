@@ -62,27 +62,28 @@ class SyntacticsStructure:
                              "System.out.print", "System.out.println", "\'", "for", "while", "\"", ";", "do"]
         self.operations = ['+', '-', '*', '/', '%', '>', '<', '>=', '<=', '==', '!=', '&&', '||', '=']
         self.unaroperations = ['!', '++', '--']
-        self.root = self._copytree(stree)
-        self._reformattree(self.root)
+        self.root = self.__copytree(stree)
+        self.__reformattree(self.root)
 
-    def _isoperation(self, ptr: NodeStruct) -> bool:
+    def __isoperation(self, ptr: NodeStruct) -> bool:
         '''Check if the node has signed descendants'''
-        if self._havealonechild(ptr):
+        if self.__havealonechild(ptr):
             if ptr.childs[0].name in self.operations + self.unaroperations:
                 return True
         else:
-            if self._getoperationchildcount(ptr) == 1:
-                i = self._getoperationindex(ptr)
+            if self.__getoperationchildcount(ptr) == 1:
+                i = self.__getoperationindex(ptr)
                 if ptr.childs[i].childs == []:
                     return True
-            elif self._getoperationchildcount(ptr) > 0:
+            elif self.__getoperationchildcount(ptr) > 0:
                 if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations:
                     return True
-                if len(ptr.childs) == 2 and (ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
+                if len(ptr.childs) == 2 and (
+                        ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
                     return True
         return False
 
-    def _deleteoperationterm(self, ptr: NodeStruct) -> None:
+    def __deleteoperationterm(self, ptr: NodeStruct) -> None:
         '''Delete operation term in Node'''
         for i in ptr.childs:
             if i.name in self.operations:
@@ -91,7 +92,7 @@ class SyntacticsStructure:
                 ptr.childs.remove(i)
                 break
 
-    def _haveuselessterm(self, ptr: NodeStruct):
+    def __haveuselessterm(self, ptr: NodeStruct):
         '''checks the tree for useless symbols'''
         res = False
         for i in ptr.childs:
@@ -100,7 +101,7 @@ class SyntacticsStructure:
                 break
         return res
 
-    def _deleteuslessterm(self, ptr: NodeStruct) -> None:
+    def __deleteuslessterm(self, ptr: NodeStruct) -> None:
         '''Delete useless terminal symbol'''
         for j in range(len(ptr.prev.childs)):
             if ptr.prev.childs[j] == ptr:
@@ -110,7 +111,7 @@ class SyntacticsStructure:
                         break
                 break
 
-    def _checkcomplete(self) -> bool:
+    def __checkcomplete(self) -> bool:
         '''checks the tree for nonterminal symbols step 1'''
 
         def _search(ptr: NodeStruct):
@@ -123,11 +124,11 @@ class SyntacticsStructure:
 
         return _search(self.root)
 
-    def _havealonechild(self, ptr: NodeStruct) -> bool:
+    def __havealonechild(self, ptr: NodeStruct) -> bool:
         '''Does a node have a single descendant node'''
         return len(ptr.childs) == 1
 
-    def _getoperationchildcount(self, ptr: NodeStruct) -> int:
+    def __getoperationchildcount(self, ptr: NodeStruct) -> int:
         '''Does a node have a single operation descendant node'''
         opcount = 0
         for i in ptr.childs:
@@ -135,14 +136,14 @@ class SyntacticsStructure:
                 opcount += 1
         return opcount
 
-    def _getoperationindex(self, ptr: NodeStruct) -> int:
+    def __getoperationindex(self, ptr: NodeStruct) -> int:
         '''Does a node have a single operation descendant node'''
         for i, t in enumerate(ptr.childs):
             if t.name in self.operations:
                 return i
         return -1
 
-    def _havenonterminalchilds(self, ptr: NodeStruct) -> bool:
+    def __havenonterminalchilds(self, ptr: NodeStruct) -> bool:
         '''check non terminal childs of ptr Node'''
 
         def _search(ptr: NodeStruct):
@@ -156,56 +157,30 @@ class SyntacticsStructure:
 
         return _search(ptr)
 
-    def _replace_node(self, parent: NodeStruct, newNode: NodeStruct) -> None:
+    def __replace_node(self, parent: NodeStruct, newNode: NodeStruct) -> None:
         '''Replacing a node with a new node'''
         parent.me = newNode
 
     def __reformattree(self, ptr: NodeStruct) -> None:
         '''Modification of algorithm for converting an output tree into an operation tree https://studopedia.su/14_133217_derevo-razbora-preobrazovanie-dereva-razbora-v-derevo-operatsiy.html'''
-        self.printast()
-        while not self._checkcomplete():  # step 1
+        while not self.__checkcomplete():  # step 1
             while True:
-                lastnode = self.getlastnonterm(ptr)  # step 2
-                if self._havealonechild(lastnode) :  # step3
+                lastnode = self.__getlastnonterm(ptr)  # step 2
+                if self.__havealonechild(lastnode) and (
+                        lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER"]):  # step3
                     lastnode.me = lastnode.childs[0]
-                    self._reformattree(ptr)  # return to step1
-                elif self._haveuselessterm(lastnode):  # step 4
-                    self._deleteuslessterm(lastnode)
-                elif self._isoperation(lastnode):  # step 5
-                    self._deleteoperationterm(lastnode)
-                    self._reformattree(ptr)
-                elif lastnode.isNonterminal == True and lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "IDENTIFICATOR":
-                    prevbuf = lastnode.prev
-                    lastnode.prev.childs.remove(lastnode)
-                    for child in lastnode.childs:
-                        child.prev = prevbuf
-                        prevbuf.childs.append(child)
-                elif lastnode.isNonterminal == True:
-                    lastnode.me.isNonterminal = False
-                elif not self._havenonterminalchilds(lastnode):  # step 6
-                    break
-                break
-
-    def _reformattree(self, ptr: NodeStruct) -> None:
-        '''Modification of algorithm for converting an output tree into an operation tree https://studopedia.su/14_133217_derevo-razbora-preobrazovanie-dereva-razbora-v-derevo-operatsiy.html'''
-        #self.printast()
-        while not self._checkcomplete():  # step 1
-            while True:
-                lastnode = self.getlastnonterm(ptr)  # step 2
-                if self._havealonechild(lastnode) and (lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER"]):  # step3
-                    lastnode.me = lastnode.childs[0]
-                    self._reformattree(ptr)  # return to step1
-                elif self._haveuselessterm(lastnode):  # step 4
-                    self._deleteuslessterm(lastnode)
-                elif self._isoperation(lastnode):  # step 5
-                    self._deleteoperationterm(lastnode)
-                    self._reformattree(ptr)
-                elif lastnode.isNonterminal == True:
+                    self.__reformattree(ptr)  # return to step1
+                elif self.__haveuselessterm(lastnode):  # step 4
+                    self.__deleteuslessterm(lastnode)
+                elif self.__isoperation(lastnode):  # step 5
+                    self.__deleteoperationterm(lastnode)
+                    self.__reformattree(ptr)
+                elif lastnode.isNonterminal:
                     if (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "IDENTIFICATOR") \
-                        or (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "DIGIT_ID") \
-                        or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "IDENTIFICATOR") \
-                        or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "DIGIT_ID") \
-                        or (lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "INTEGER NUMBER") :
+                            or (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "DIGIT_ID") \
+                            or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "IDENTIFICATOR") \
+                            or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "DIGIT_ID") \
+                            or (lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "INTEGER NUMBER"):
                         prevbuf = lastnode.prev
                         lastnode.prev.childs.remove(lastnode)
                         for child in lastnode.childs:
@@ -221,11 +196,11 @@ class SyntacticsStructure:
                             indx += 1
                     else:
                         lastnode.me.isNonterminal = False
-                elif not self._havenonterminalchilds(lastnode):  # step 6
+                elif not self.__havenonterminalchilds(lastnode):  # step 6
                     break
                 break
 
-    def getlastnonterm(self, ptr) -> NodeStruct:
+    def __getlastnonterm(self, ptr) -> NodeStruct:
         '''Select the leftmost tree node marked with a nonterminal symbol'''
 
         def _search(ptr: NodeStruct):
@@ -236,7 +211,7 @@ class SyntacticsStructure:
 
         return _search(ptr)
 
-    def _copytree(self, stree: SyntacticalTree):
+    def __copytree(self, stree: SyntacticalTree):
         '''Constructor of copying'''
 
         def _search(ptr1: Node, ptr2: NodeStruct):
@@ -260,6 +235,7 @@ class SyntacticsStructure:
 
     def printast(self):
         '''Output of ast tree'''
+
         def search(ptr: NodeStruct, level):
             print(str(level) + ':' + '|' + level * ' ' + '├-' + str(ptr))
             if ptr.childs:
