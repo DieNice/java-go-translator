@@ -9,7 +9,7 @@ class FileReader:
         if os.path.isfile(filepath):
             if not filepath.endswith('.java'):
                 return "File {} is not java program".format(os.path.basename(filepath))
-            return [os.path.basename(filepath), self.__readfile(filepath)]
+            return [(os.path.basename(filepath), self.__readfile(filepath))]
         elif filepath == '':
             pathdir = os.path.abspath(pathdir)
             if os.path.isdir(pathdir):
@@ -27,7 +27,7 @@ class FileReader:
                     return "Java files with \"{}\" regex not founded in {}".format(namepattern, pathdir)
                 resultdata = []
                 for i in validnameslist:
-                    resultdata.append([i, self.__readfile(pathdir + '/' + i)])
+                    resultdata.append((i, self.__readfile(pathdir + '/' + i)))
                 return resultdata
 
             else:

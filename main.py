@@ -8,26 +8,23 @@ if __name__ == '__main__':
     lexer = LexicalAnalyzer()
     synanalyzer = SyntacticalAnalyzer()
     reader = FileReader()
-    indata = reader.read(namepattern='Cycle2.java')  # [^E].*
+    indata = reader.read(namepattern="Cycle2.java")  # [^E].*
     outdata = []
-    if type(indata) is list:
-        for i in indata:
-            try:
-                res = lexer.skan(i)
-                print('file: {},data {}'.format(i[0], res[0]))
-                res[1].printenv()
-                textnow = synanalyzer.lextableToString(res[0])
-                earlyres = synanalyzer.earley(rule=synanalyzer.PROGRAMM, text=textnow)
-                parselist = synanalyzer.right_parsing(earlyres)
-                print(parselist)
-                dirtytree = synanalyzer.toTree(parselist)
-                dirtytree.printTree()
-                ast = SyntacticsStructure(dirtytree)
-                ast.printast()
-                # outdata.append((i[0], 'Hello golang!'))
-            except:
-                print('error in file: {}'.format(i[0]))
-        # writer = FileWriter()
-        # writer.write(outdata)
-    else:
-        lexer.skan(indata)
+    for i in indata:
+        try:
+            res = lexer.skan(i)
+            print('file: {},data {}'.format(i[0], res[0]))
+            res[1].printenv()
+            textnow = synanalyzer.lextableToString(res[0])
+            earlyres = synanalyzer.earley(rule=synanalyzer.PROGRAMM, text=textnow)
+            parselist = synanalyzer.right_parsing(earlyres)
+            print(parselist)
+            dirtytree = synanalyzer.toTree(parselist)
+            dirtytree.printTree()
+            ast = SyntacticsStructure(dirtytree)
+            ast.printast()
+            # outdata.append((i[0], 'Hello golang!'))
+        except:
+            print('error in file: {}'.format(i[0]))
+    # writer = FileWriter()
+    # writer.write(outdata)
