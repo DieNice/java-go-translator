@@ -167,7 +167,7 @@ class SyntacticsStructure:
             while True:
                 lastnode = self.__getlastnonterm(ptr)  # step 2
                 if self.__havealonechild(lastnode) and (
-                        lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER"]):  # step3
+                        lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER","PROGRAMM","MAIN FUNCTION"]):  # step3
                     lastnode.me = lastnode.childs[0]
                     self.__reformattree(ptr)  # return to step1
                 elif self.__haveuselessterm(lastnode):  # step 4
