@@ -274,7 +274,7 @@ class SyntacticsStructure:
 
         return _search(ptr)
 
-    def _copytree(self, stree: SyntacticalTree):
+    def __copytree(self, stree: SyntacticalTree):
         '''Constructor of copying'''
 
         def _search(ptr1: Node, ptr2: NodeStruct):
