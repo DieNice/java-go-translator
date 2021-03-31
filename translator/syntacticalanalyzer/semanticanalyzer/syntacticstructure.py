@@ -10,6 +10,7 @@ class NodeStruct:
     def __init__(self, isNonterminal: bool, name: str, value: str = '', prev: NodeStruct = None) -> None:
         self.name = name
         self.value = value
+        self.idtable = None
         self.isNonterminal = isNonterminal
         self.prev: NodeStruct = prev
         self.childs: list(NodeStruct) = []
@@ -64,11 +65,12 @@ class SyntacticsStructure:
         self.unaroperations = ['!', '++', '--']
         self.root = self.__copytree(stree)
         self.__reformattree(self.root)
+        self.__fixtree(self.root)
 
     def __isoperation(self, ptr: NodeStruct) -> bool:
         '''Check if the node has signed descendants'''
         if self.__havealonechild(ptr):
-            if ptr.childs[0].name in self.operations + self.unaroperations:
+            if ptr.childs[0].name in (self.operations + self.unaroperations):
                 return True
         else:
             if self.__getoperationchildcount(ptr) == 1:
@@ -86,7 +88,7 @@ class SyntacticsStructure:
     def __deleteoperationterm(self, ptr: NodeStruct) -> None:
         '''Delete operation term in Node'''
         for i in ptr.childs:
-            if i.name in self.operations:
+            if i.name in (self.operations + self.unaroperations):
                 ptr.me.name = i.name
                 ptr.me.isNonterminal = i.isNonterminal
                 ptr.childs.remove(i)
@@ -132,14 +134,14 @@ class SyntacticsStructure:
         '''Does a node have a single operation descendant node'''
         opcount = 0
         for i in ptr.childs:
-            if i.name in self.operations:
+            if i.name in self.operations + self.unaroperations:
                 opcount += 1
         return opcount
 
     def __getoperationindex(self, ptr: NodeStruct) -> int:
         '''Does a node have a single operation descendant node'''
         for i, t in enumerate(ptr.childs):
-            if t.name in self.operations:
+            if t.name in self.operations + self.unaroperations:
                 return i
         return -1
 
@@ -163,11 +165,13 @@ class SyntacticsStructure:
 
     def __reformattree(self, ptr: NodeStruct) -> None:
         '''Modification of algorithm for converting an output tree into an operation tree https://studopedia.su/14_133217_derevo-razbora-preobrazovanie-dereva-razbora-v-derevo-operatsiy.html'''
+        # self.printast()
         while not self.__checkcomplete():  # step 1
             while True:
                 lastnode = self.__getlastnonterm(ptr)  # step 2
-                if self.__havealonechild(lastnode) and (
-                        lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER","PROGRAMM","MAIN FUNCTION"]):  # step3
+                if self.__havealonechild(lastnode) \
+                        and (lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER", "STRING", "BOOL VALUE",
+                                                   "OUTPUT FUNCTION", "PROGRAMM"]):  # step3
                     lastnode.me = lastnode.childs[0]
                     self.__reformattree(ptr)  # return to step1
                 elif self.__haveuselessterm(lastnode):  # step 4
@@ -176,12 +180,14 @@ class SyntacticsStructure:
                     self.__deleteoperationterm(lastnode)
                     self.__reformattree(ptr)
                 elif lastnode.isNonterminal:
-                    if (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "IDENTIFICATOR") \
-                            or (lastnode.name == "IDENTIFICATOR" and lastnode.prev.name == "DIGIT_ID") \
-                            or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "IDENTIFICATOR") \
-                            or (lastnode.name == "DIGIT_ID" and lastnode.prev.name == "DIGIT_ID") \
-                            or (lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "INTEGER NUMBER") \
-                            or (lastnode.name == "STRING" and lastnode.prev.name == "STRING"):
+                    if (lastnode.name, lastnode.prev.name) in [
+                        ("IDENTIFICATOR", "IDENTIFICATOR"),
+                        ("IDENTIFICATOR", "DIGIT_ID"),
+                        ("DIGIT_ID", "IDENTIFICATOR"),
+                        ("DIGIT_ID", "DIGIT_ID"),
+                        ("STRING", "STRING"),
+                        ("INTEGER NUMBER", "INTEGER NUMBER")
+                    ]:
                         prevbuf = lastnode.prev
                         lastnode.prev.childs.remove(lastnode)
                         for child in lastnode.childs:
@@ -201,6 +207,62 @@ class SyntacticsStructure:
                     break
                 break
 
+    def __fixtree(self, ptr):
+        '''Merge all declares, gather id, numbers'''
+
+        def _searchid(ptr: NodeStruct):
+            for i in ptr.childs:
+                if i.name in ['IDENTIFICATOR', 'STRING', 'INTEGER NUMBER', 'REAL NUMBER', 'BOOL VALUE']:
+                    tmp = ''
+                    for j in i.childs:
+                        tmp = tmp + j.name
+                        j.prev = None
+                    i.value = tmp
+                    i.childs = []
+                else:
+                    _searchid(i)
+            return
+
+        def _searchvars(ptr: NodeStruct):
+            if len(ptr.childs) == 0:
+                return
+            for i in ptr.childs:
+                _searchvars(i)
+                if i.name in ['DECLARE A VARIABLE LIST', 'SUGGESTION_LIST']:
+                    indx = ptr.childs.index(i)
+                    for j in i.childs:
+                        j.prev = ptr
+                        ptr.childs.insert(indx, j)
+                        indx += 1
+                    ptr.childs.remove(i)
+            return
+
+        def _searchopers(ptr: NodeStruct):
+            if len(ptr.childs) == 0:
+                return
+            for i in ptr.childs:
+                _searchopers(i)
+                if i.name == '=':
+                    i.value = i.name
+                    i.name = 'ASSIGNMENT'
+                elif i.name in self.operations + self.unaroperations:
+                    i.value = i.name
+                    i.name = 'OPERATOR'
+                elif i.name in ['DECLARE A VARIABLES']:
+                    i.value = i.childs[0].name
+                    i.childs[0].prev = None
+                    i.childs.pop(0)
+            return
+
+
+        _searchid(ptr)
+        #self.printast()
+        _searchvars(ptr)
+        #self.printast()
+        self.root.childs[0].name = 'PROGRAMM IDENTIFICATOR'
+        _searchopers(ptr)
+        return
+
     def __getlastnonterm(self, ptr) -> NodeStruct:
         '''Select the leftmost tree node marked with a nonterminal symbol'''
 
@@ -212,7 +274,7 @@ class SyntacticsStructure:
 
         return _search(ptr)
 
-    def __copytree(self, stree: SyntacticalTree):
+    def _copytree(self, stree: SyntacticalTree):
         '''Constructor of copying'''
 
         def _search(ptr1: Node, ptr2: NodeStruct):
@@ -236,9 +298,8 @@ class SyntacticsStructure:
 
     def printast(self):
         '''Output of ast tree'''
-
         def search(ptr: NodeStruct, level):
-            print(str(level) + ':' + '|' + level * ' ' + '├-' + str(ptr))
+            print(str(level) + ':' + '|' + level * '+' + '├-' + str(ptr))
             if ptr.childs:
                 for i in ptr.childs:
                     search(i, level + 1)
