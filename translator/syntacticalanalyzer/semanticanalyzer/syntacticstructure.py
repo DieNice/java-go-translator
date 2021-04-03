@@ -80,20 +80,30 @@ class SyntacticsStructure:
                 if ptr.childs[i].childs == []:
                     return True
             elif self.__getoperationchildcount(ptr) > 0:
-                if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations:
+                if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations :
                     return True
-                if len(ptr.childs) == 2 and (ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
+                elif len(ptr.childs) == 2 and (ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
                     return True
         return False
 
     def __deleteoperationterm(self, ptr: NodeStruct) -> None:
         '''Delete operation term in Node'''
-        for i in ptr.childs:
+        """        for i in ptr.childs:
             if i.name in (self.operations + self.unaroperations):
                 ptr.me.name = i.name
                 ptr.me.isNonterminal = i.isNonterminal
                 ptr.childs.remove(i)
-                break
+                break"""
+        i = ptr.childs[1]
+        if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations:
+            i = ptr.childs[1]
+        elif len(ptr.childs) == 2 and (
+                ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
+            i = ptr.childs[0]
+        ptr.me.name = i.name
+        ptr.me.isNonterminal = i.isNonterminal
+        ptr.childs.remove(i)
+        """"""
 
     def __haveuselessterm(self, ptr: NodeStruct):
         '''checks the tree for useless symbols'''
@@ -170,6 +180,8 @@ class SyntacticsStructure:
         while not self.__checkcomplete():  # step 1
             while True:
                 lastnode = self.__getlastnonterm(ptr)  # step 2
+                if lastnode.name == 'LOGIC EXPRESSION':
+                    print()
                 if self.__havealonechild(lastnode) \
                     and (lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER", "STRING", "BOOL VALUE", "OUTPUT FUNCTION", "PROGRAMM"]):  # step3
                     lastnode.me = lastnode.childs[0]
@@ -255,6 +267,7 @@ class SyntacticsStructure:
             return
 
 
+        #self.printast()
         _searchid(ptr)
         #self.printast()
         _searchvars(ptr)
