@@ -28,6 +28,7 @@ class FileReader:
                 resultdata = []
                 for i in validnameslist:
                     resultdata.append((i, self.__readfile(pathdir + '/' + i)))
+                    print(resultdata)
                 return resultdata
 
             else:

@@ -12,21 +12,24 @@ if __name__ == '__main__':
     reader = FileReader()
     indata = reader.read(namepattern="Formula3")  # [^E].*
     outdata = []
+    print('input')
+    print(indata)
+
     for i in indata:
         try:
             res = lexer.skan(i)
-            print('file: {},data {}'.format(i[0], res[0]))
+            #print('file: {},data {}'.format(i[0], res[0]))
             res[1].printenv()
             textnow = synanalyzer.lextableToString(res[0])
             earlyres = synanalyzer.earley(rule=synanalyzer.PROGRAMM, text=textnow)
             parselist = synanalyzer.right_parsing(earlyres)
-            print(parselist)
+            #print(parselist)
             dirtytree = synanalyzer.toTree(parselist)
             dirtytree.printTree()
             ast = SyntacticsStructure(dirtytree)
             ast.printast()
             textprogram = codegenerator.translate(ast.root)
-            print(textprogram)
+           # print(textprogram)
             outdata.append((i[0], textprogram))
         except:
             print('error in file: {}'.format(i[0]))
