@@ -60,7 +60,7 @@ class SyntacticsStructure:
     def __init__(self, stree: SyntacticalTree):
         self.uselessterms = ["public", "static", "void", "main", "(", "String[]", "args", ")", "{", "}", "class", ",",
                              "if",
-                             "\'", "for", "while", "\"", ";", "do"]
+                             "System.out.print","\'", "for", "while", "\"", ";", "do"]
         self.operations = ['+', '-', '*', '/', '%', '>', '<', '>=', '<=', '==', '!=', '&&', '||', '=']
         self.unaroperations = ['!', '++', '--']
         self.root = self.__copytree(stree)
