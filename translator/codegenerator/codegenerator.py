@@ -8,7 +8,7 @@ class CodeGenerator:
         if node.name == 'PROGRAMM':
             expression = ''
             for i in node.childs:
-                expression += '\n' + self.__translate_expression(i)
+                expression += '\n   ' + self.__translate_expression(i)
             return self.__add_main_program(expression)
 
     def __translate_expression(self, node: NodeStruct):
@@ -17,7 +17,7 @@ class CodeGenerator:
         elif node.name in 'IDENTIFICATOR':
             return self.__translate_name(node)
         elif node.name == 'PROGRAMM IDENTIFICATOR':
-            return ''
+            return '//' + self.__translate_name(node)
         elif node.name in ['INTEGER NUMBER', 'REAL NUMBER', 'BOOL VALUE']:
             return self.__translate_type_value(node)
         elif node.name == 'DECLARE A VARIABLES':
@@ -34,7 +34,7 @@ class CodeGenerator:
             raise ValueError('Node {} is not supported'.format(str(node)))
 
     def __add_main_program(self, expression):
-        return "package main\nimport \"fmt\"\nfunc main() {{\n{expression}\n}}".format(expression=expression)
+        return "package main\nimport \"fmt\"\n\nfunc main() {{ {expression}\n}}".format(expression=expression)
 
     def __translate_bin_op(self, node: NodeStruct):
         operand = node.value
@@ -56,9 +56,8 @@ class CodeGenerator:
     def __translate_declare_a_variables(self, node: NodeStruct):
         vars = self.__translate_expression(node.childs[0])
         l_child = len(node.childs)
-        for i in range(1, l_child - 1):
+        for i in range(1, l_child):
             vars += ' ,' + self.__translate_expression(node.childs[i])
-        vars += ' ,' + self.__translate_expression(node.childs[l_child - 1])
         go_type = {
             'boolean': 'bool',
             'byte': 'int8',
