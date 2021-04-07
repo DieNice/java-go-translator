@@ -10,7 +10,7 @@ if __name__ == '__main__':
     synanalyzer = SyntacticalAnalyzer()
     codegenerator = CodeGenerator()
     reader = FileReader()
-    indata = reader.read(namepattern="Formula3")  # [^E].*
+    indata = reader.read(namepattern="[^E].*")  # [^E].*
     outdata = []
     for i in indata:
         try:
@@ -28,7 +28,8 @@ if __name__ == '__main__':
             textprogram = codegenerator.translate(ast.root)
             print(textprogram)
             outdata.append((i[0], textprogram))
-        except:
+        except Exception as e:
             print('error in file: {}'.format(i[0]))
-        writer = FileWriter()
-        writer.write(outdata)
+            print(str(e))
+    writer = FileWriter()
+    writer.write(outdata)

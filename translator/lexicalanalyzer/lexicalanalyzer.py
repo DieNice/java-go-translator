@@ -8,7 +8,7 @@ from .tok import Token
 
 class LexicalAnalyzer:
     '''returns table of lexems'''
-    VALIDCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+_-[]'\",;-%/*~<>&^|!.=(){} \n"
+    VALIDCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+_-[]'\",;-%/*<>&^|!.=(){} \n"
     '''Strict order'''
     token_exprs = [
         (r"[\n\s]+", None),
