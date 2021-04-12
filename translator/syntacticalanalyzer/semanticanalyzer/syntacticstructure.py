@@ -77,18 +77,13 @@ class SyntacticsStructure:
             if ptr.childs[0].name in (self.operations + self.unaroperations):
                 return True
         else:
-            if self.__getoperationchildcount(ptr) == 1:
-                i = self.__getoperationindex(ptr)
-                if ptr.childs[i].childs == []:
-                    return True
-            elif self.__getoperationchildcount(ptr) > 0:
-                if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations \
-                        and ptr.childs[1].childs == [] :
-                    return True
-                elif len(ptr.childs) == 2 and \
-                        (ptr.childs[0].name in self.unaroperations and ptr.childs[0].childs == [] or
-                         ptr.childs[1].name in self.unaroperations and ptr.childs[1].childs == []):
-                    return True
+            if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations \
+                    and ptr.childs[1].childs == [] :
+                return True
+            elif len(ptr.childs) == 2 and \
+                    (ptr.childs[0].name in self.unaroperations and ptr.childs[0].childs == [] or
+                     ptr.childs[1].name in self.unaroperations and ptr.childs[1].childs == []):
+                return True
         return False
 
     def __deleteoperationterm(self, ptr: NodeStruct) -> None:
