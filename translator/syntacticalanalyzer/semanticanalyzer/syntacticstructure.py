@@ -66,7 +66,7 @@ class SyntacticsStructure:
         self.root = self.__copytree(stree)
         #self.printast()
         self.__reformattree(self.root)
-        self.printast()
+        #self.printast()
         self.__fixtree(self.root)
 
     def __isoperation(self, ptr: NodeStruct) -> bool:
@@ -178,7 +178,7 @@ class SyntacticsStructure:
 
     def __reformattree(self, ptr: NodeStruct) -> None:
         '''Modification of algorithm for converting an output tree into an operation tree https://studopedia.su/14_133217_derevo-razbora-preobrazovanie-dereva-razbora-v-derevo-operatsiy.html'''
-        self.printast()
+        #self.printast()
         while not self.__checkcomplete():  # step 1
             while True:
                 lastnode = self.__getlastnonterm(ptr)  # step 2
