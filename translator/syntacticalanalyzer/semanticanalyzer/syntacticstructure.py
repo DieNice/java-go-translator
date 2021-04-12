@@ -71,12 +71,12 @@ class SyntacticsStructure:
 
     def __isoperation(self, ptr: NodeStruct) -> bool:
         '''Check if the node has signed descendants'''
-        """if ptr.prev.name in ['SIGNED NUM', 'NUMBER', 'INTEGER NUMBER']:
-            return False"""
-        if self.__havealonechild(ptr):
+        if ptr.name in ['STRING']:
+            return False
+        """if self.__havealonechild(ptr):
             if ptr.childs[0].name in (self.operations + self.unaroperations):
-                return True
-        else:
+                return True"""
+        if True:
             if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations \
                     and ptr.childs[1].childs == [] :
                 return True
