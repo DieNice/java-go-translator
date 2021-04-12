@@ -66,11 +66,13 @@ class SyntacticsStructure:
         self.root = self.__copytree(stree)
         #self.printast()
         self.__reformattree(self.root)
-        #self.printast()
+        self.printast()
         self.__fixtree(self.root)
 
     def __isoperation(self, ptr: NodeStruct) -> bool:
         '''Check if the node has signed descendants'''
+        """if ptr.prev.name in ['SIGNED NUM', 'NUMBER', 'INTEGER NUMBER']:
+            return False"""
         if self.__havealonechild(ptr):
             if ptr.childs[0].name in (self.operations + self.unaroperations):
                 return True
@@ -80,9 +82,12 @@ class SyntacticsStructure:
                 if ptr.childs[i].childs == []:
                     return True
             elif self.__getoperationchildcount(ptr) > 0:
-                if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations :
+                if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations \
+                        and ptr.childs[1].childs == [] :
                     return True
-                elif len(ptr.childs) == 2 and (ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
+                elif len(ptr.childs) == 2 and \
+                        (ptr.childs[0].name in self.unaroperations and ptr.childs[0].childs == [] or
+                         ptr.childs[1].name in self.unaroperations and ptr.childs[1].childs == []):
                     return True
         return False
 
@@ -97,9 +102,11 @@ class SyntacticsStructure:
         i = ptr.childs[1]
         if len(ptr.childs) == 3 and ptr.childs[1].name in self.operations:
             i = ptr.childs[1]
-        elif len(ptr.childs) == 2 and (
-                ptr.childs[0].name in self.unaroperations or ptr.childs[1].name in self.unaroperations):
-            i = ptr.childs[0]
+        elif len(ptr.childs) == 2 :
+            if ptr.childs[0].name in self.unaroperations:
+                i = ptr.childs[0]
+            elif ptr.childs[1].name in self.unaroperations:
+                i = ptr.childs[1]
         ptr.me.name = i.name
         ptr.me.isNonterminal = i.isNonterminal
         ptr.childs.remove(i)
@@ -176,12 +183,12 @@ class SyntacticsStructure:
 
     def __reformattree(self, ptr: NodeStruct) -> None:
         '''Modification of algorithm for converting an output tree into an operation tree https://studopedia.su/14_133217_derevo-razbora-preobrazovanie-dereva-razbora-v-derevo-operatsiy.html'''
-        #self.printast()
+        self.printast()
         while not self.__checkcomplete():  # step 1
             while True:
                 lastnode = self.__getlastnonterm(ptr)  # step 2
-                if lastnode.name == 'LOGIC EXPRESSION':
-                    print()
+                """if lastnode.name == 'NUMBER':
+                    print()"""
                 if self.__havealonechild(lastnode) \
                     and (lastnode.name not in ["IDENTIFICATOR", "INTEGER NUMBER", "STRING", "BOOL VALUE", "OUTPUT FUNCTION", "PROGRAMM"]):  # step3
                     lastnode.me = lastnode.childs[0]
@@ -198,14 +205,23 @@ class SyntacticsStructure:
                         ("DIGIT_ID", "IDENTIFICATOR"),
                         ("DIGIT_ID", "DIGIT_ID"),
                         ("STRING", "STRING"),
-                        ("INTEGER NUMBER", "INTEGER NUMBER")
+                        ("INTEGER NUMBER", "INTEGER NUMBER"),
+                        ("INTEGER NUMBER", "SIGNED NUM"),
+                        ("REAL NUMBER", "SIGNED NUM"),
                     ]:
+                        if (lastnode.name, lastnode.prev.name) in [
+                            ("INTEGER NUMBER", "SIGNED NUM"),
+                            ("REAL NUMBER", "SIGNED NUM"),
+                        ]:
+                            lastnode.prev.name = lastnode.name
                         prevbuf = lastnode.prev
                         lastnode.prev.childs.remove(lastnode)
                         for child in lastnode.childs:
                             child.prev = prevbuf
                             prevbuf.childs.append(child)
-                    elif (lastnode.name == "INTEGER NUMBER" and lastnode.prev.name == "REAL NUMBER"):
+                    elif (lastnode.name, lastnode.prev.name) in [
+                        ("INTEGER NUMBER", "REAL NUMBER"),
+                    ]:
                         prevbuf = lastnode.prev
                         indx = lastnode.prev.childs.index(lastnode)
                         lastnode.prev.childs.remove(lastnode)
@@ -224,7 +240,7 @@ class SyntacticsStructure:
 
         def _searchid(ptr: NodeStruct):
             for i in ptr.childs:
-                if i.name in ['IDENTIFICATOR', 'STRING', 'INTEGER NUMBER', 'REAL NUMBER', 'BOOL VALUE']:
+                if i.name in ['IDENTIFICATOR', 'STRING', 'INTEGER NUMBER', 'REAL NUMBER', 'BOOL VALUE', 'SIGNED NUM']:
                     tmp = ''
                     for j in i.childs:
                         tmp = tmp + j.name
