@@ -32,7 +32,7 @@ class SyntacticalAnalyzer:
 
         self.DIGIT = Rule("DIGIT", Production("1"), Production("2"), Production("3"), Production("4"), Production("5"),
                           Production("6"), Production("7"), Production("8"), Production("9"), Production("0"))
-        self.SIGN = Rule("SIGN", Production("+"), Production("-"), Production(""))
+        self.SIGN = Rule("SIGN", Production("+"), Production("-"))
         self.BOOL_VAL = Rule("BOOL VALUE", Production("true"), Production("false"))
         self.TYPE_NAME = Rule("TYPE NAME", Production("byte"), Production("short"), Production("int"),
                               Production("long"),
@@ -65,8 +65,13 @@ class SyntacticalAnalyzer:
         self.INT_NUM = Rule("INTEGER NUMBER", Production(self.DIGIT))
         self.INT_NUM.add(Production(self.DIGIT, self.INT_NUM))
         self.REAL_NUM = Rule("REAL NUMBER", Production(self.INT_NUM, ".", self.INT_NUM))
+
+        self.SIGNED_NUM = Rule("SIGNED NUM", Production(self.SIGN, self.INT_NUM), Production(self.SIGN, self.REAL_NUM))
         self.NUM = Rule("NUMBER", Production(self.INT_NUM), Production(self.REAL_NUM),
-                        Production(self.SIGN, self.INT_NUM), Production(self.SIGN, self.REAL_NUM))
+                        Production(self.SIGNED_NUM))
+
+        """self.NUM = Rule("NUMBER", Production(self.INT_NUM), Production(self.REAL_NUM),
+                        Production(self.SIGN, self.INT_NUM), Production(self.SIGN, self.REAL_NUM))"""
         self.ARITH_SGN_SUM = Rule("ARITHMETIC SUM SIGN", Production("+"), Production("-"))
         self.ARITH_SGN_MUL = Rule("ARITHMETIC MUL SIGN", Production("*"), Production("/"), Production("%"))
         self.ARITH_MUL = Rule("ARITHMETIC MULTIPLIER", Production(self.IDENTIFICATOR), Production(self.NUM))
@@ -88,6 +93,11 @@ class SyntacticalAnalyzer:
         self.LOG_EXPR.add(Production(self.LOG_SUM, self.LOG_SGN_SUM, self.LOG_EXPR))
         self.LOG_MUL.add(Production(self.LOG_EXPR, self.LOG_SGN_CMP, self.LOG_EXPR),
                          Production("(", self.LOG_EXPR, ")"))
+
+        """
+        self.LOG_EXPR = Rule("LOGIC EXPRESSION", Production(self.IDENTIFICATOR))
+        self.LOG_EXPR.add(Production(self.IDENTIFICATOR, "||", self.LOG_EXPR),
+                          Production(self.IDENTIFICATOR, "&&", self.LOG_EXPR))"""
 
         self.EXPR = Rule("EXPRESSION", Production(self.STR_EXPR), Production(self.ARITH_EXPR),
                          Production(self.LOG_EXPR))
