@@ -10,7 +10,7 @@ if __name__ == '__main__':
     synanalyzer = SyntacticalAnalyzer()
     codegenerator = CodeGenerator()
     reader = FileReader()
-    indata = reader.read(namepattern="[^E].*")  # [^E].*
+    indata = reader.read()  # [^E].*
     outdata = []
     for i in indata:
         try:

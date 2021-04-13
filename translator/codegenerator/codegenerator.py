@@ -13,7 +13,7 @@ class CodeGenerator:
 
     def __translate_expression(self, node: NodeStruct) -> str:
         if node.name in ['OPERATOR', 'ASSIGNMENT']:
-            return self.__translate_bin_op(node)
+            return self.__translate_op(node)
         elif node.name in 'IDENTIFICATOR':
             return self.__translate_name(node)
         elif node.name == 'PROGRAMM IDENTIFICATOR':
@@ -41,10 +41,19 @@ class CodeGenerator:
         return "package main\nimport (\n\"fmt\"\n\"math\"\n)\nfunc main() {{ {expression}\n}}".format(
             expression=expression)
 
+    def __translate_op(self, node: NodeStruct) -> str:
+        if node.value in ['--', '++']:
+            return self.__translate_unary_op(node)
+        return self.__translate_bin_op(node)
+
     def __translate_bin_op(self, node: NodeStruct) -> str:
         operand = node.value
         return self.__translate_expression(node.childs[0]) + ' ' + operand + ' ' + self.__translate_expression(
             node.childs[1])
+
+    def __translate_unary_op(self, node: NodeStruct) -> str:
+        operand = node.value
+        return self.__translate_expression(node.childs[0]) + operand
 
     def __translate_type_value(self, node: NodeStruct) -> str:
         return node.value + ' '
