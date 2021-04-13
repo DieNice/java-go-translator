@@ -7,6 +7,7 @@ from os.path import expanduser
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from MainWindow import Ui_summerizer
+from mainwindow import Ui_MainWindow
 from translator.lexicalanalyzer.lexicalanalyzer import LexicalAnalyzer
 from translator.syntacticalanalyzer.recognizer.syntacticalanalyzer import SyntacticalAnalyzer
 from translator.syntacticalanalyzer.semanticanalyzer.syntacticstructure import SyntacticsStructure
@@ -92,6 +93,7 @@ class guiMan(QtWidgets.QMainWindow):
                     self.ui.textEdit_2.setText(textprogram)
                     self.ui.lineEdit_2.setEnabled(1)
                     self.ui.lineEdit_2.setText(self.ui.lineEdit.text().replace('java', 'go'))
+                    self.ui.pushButton_3.show()
                     self.ui.pushButton_3.setEnabled(1)
                 else:
                     raise Exception('no file provided')
@@ -102,9 +104,27 @@ class guiMan(QtWidgets.QMainWindow):
 
     def __init__(self):
         super(guiMan, self).__init__()
-        self.ui = Ui_summerizer()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.ui.label_4.setStyleSheet("""font: bold italic;color: #d4f1f4;""")
+        self.ui.label_6.setStyleSheet("""font: bold italic;color: #d4f1f4;""")
+        self.ui.pushButton_2.setStyleSheet("background-color: #75e6da;"
+                                           """font: bold italic;color: black;""")
+        self.ui.pushButton_3.setStyleSheet("background-color: #75e6da;"
+                                           """font: bold italic;color: black;""")
+        self.ui.groupBox.setStyleSheet("""font: bold italic;color: #d4f1f4;""")
+        self.ui.label_9.setStyleSheet("""font: bold italic;color: #d4f1f4;""")
+        self.ui.centralwidget.setStyleSheet("background-color: #05445e;")
+        self.ui.textEdit.setStyleSheet("background-color: white;")
+        self.ui.textEdit_2.setStyleSheet("background-color: white;")
+        self.ui.textEdit_3.setStyleSheet("background-color: white;")
+        self.ui.lineEdit.setStyleSheet("background-color: white;"
+                                       """font:  ubuntu;color: black;""")
+        self.ui.lineEdit_2.setStyleSheet("background-color: white;"
+                                         """font:  ubuntu;color: black;""")
+        self.ui.pushButton.setStyleSheet("background-color: #189ab4;")
         self.ui.progressBar.hide()
+        self.ui.pushButton_3.hide()
         self.ui.progressBar.reset()
         self.ui.lineEdit.setReadOnly(1)
         self.ui.pushButton_2.setShortcut('Ctrl+O')
