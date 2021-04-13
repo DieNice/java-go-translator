@@ -53,6 +53,7 @@ class SyntacticalTree:
 
         level = 0
         search(self.root, level)
+        print()
 
     def __str__(self):
         return 'None'
