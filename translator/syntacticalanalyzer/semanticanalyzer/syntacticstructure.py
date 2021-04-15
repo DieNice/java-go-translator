@@ -324,5 +324,5 @@ class SyntacticsStructure:
                     search(i, level + 1)
 
         level = 0
-        print()
         search(self.root, level)
+        print()
