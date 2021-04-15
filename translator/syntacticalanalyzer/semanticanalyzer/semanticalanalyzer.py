@@ -117,7 +117,9 @@ class Semanticalanalizer:
                         id = j.childs[0].value
                         inittype = self.__gettype(j.childs[1])
                         if not self.__istransformable(inittype, type):
-                            raise Exception('incompatible types for id {} : {} cannot be converted to {}'.format(id, inittype, type))
+                            raise Exception(
+                                'incompatible types for id {} : {} cannot be converted to {}'.format(id, inittype,
+                                                                                                     type))
                     elif j.name == 'IDENTIFICATOR':
                         id = j.value
                     else:

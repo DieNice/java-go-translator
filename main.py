@@ -4,11 +4,13 @@ from translator.lexicalanalyzer.lexicalanalyzer import LexicalAnalyzer
 from translator.syntacticalanalyzer.recognizer.syntacticalanalyzer import SyntacticalAnalyzer
 from translator.syntacticalanalyzer.semanticanalyzer.syntacticstructure import SyntacticsStructure
 from translator.codegenerator.codegenerator import CodeGenerator
+from translator.syntacticalanalyzer.semanticanalyzer.semanticalanalyzer import Semanticalanalizer
 
 if __name__ == '__main__':
     lexer = LexicalAnalyzer()
     synanalyzer = SyntacticalAnalyzer()
     codegenerator = CodeGenerator()
+
     reader = FileReader()
     indata = reader.read()  # [^E].*
     outdata = []
@@ -25,6 +27,8 @@ if __name__ == '__main__':
             dirtytree.printTree()
             ast = SyntacticsStructure(dirtytree)
             ast.printast()
+            semanticanalyzer = Semanticalanalizer()
+            semanticanalyzer.scan(ast)
             textprogram = codegenerator.translate(ast.root)
             print(textprogram)
             outdata.append((i[0], textprogram))
