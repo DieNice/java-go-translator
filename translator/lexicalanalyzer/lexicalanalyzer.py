@@ -1,3 +1,4 @@
+
 import re
 import sys
 
@@ -125,4 +126,3 @@ class LexicalAnalyzer:
                 else:
                     pos = match.end(0)
             return [lextable, env]
-
