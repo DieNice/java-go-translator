@@ -21,6 +21,7 @@ class Semanticalanalizer:
         self.inttypes = ['byte', 'short', 'int', 'long', 'char']
         self.floattypes = ['float', 'double']
         self.stringtypes = ['char', 'String']
+        self.types = self.logtypes + self.inttypes + self.floattypes + self.stringtypes
         self.exeptions: [str] = []
 
     def __settotype(self, node: NodeStruct, type: str):
@@ -172,6 +173,9 @@ class Semanticalanalizer:
                     raise Exception(
                         'incompatible types for id {} : {} cannot be converted to {}'.format(id, inittype, type))
                 self.__updateidinscope(id)
+            elif i.name in ['OUTPUT FUNCTION']:
+                if not self.__gettype(i.childs[0]) in self.types:
+                    raise Exception('wrong output parameter')
             self.__search(i)
 
     def scan(self, ast: SyntacticsStructure):
