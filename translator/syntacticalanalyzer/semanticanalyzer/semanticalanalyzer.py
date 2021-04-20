@@ -97,7 +97,7 @@ class Semanticalanalizer:
             if len(ptr.childs) == 2:
                 '''for bis operations'''
                 if operation in self.bisoperations:
-                    return self.__getoperationtype(ptr.childs[0], ptr.childs[1])
+                    return self.__getoperationtype(operation, ptr.childs[0], ptr.childs[1])
                 else:
                     raise Exception('unknown bis operation {}'.format(operation))
             elif len(ptr.childs) == 1:
@@ -118,6 +118,31 @@ class Semanticalanalizer:
         self.__search(ptr)
         self.envptr = self.envptr.prev
 
+    def __addidtoscope(self, id: str, type: str, flag: bool = False):
+        tmp = self.env.searchelem(self.envptr, id)
+        if tmp != -1:
+            raise Exception("identificator {} is already defined".format(id))
+        self.envptr.addid(id, (type, flag))
+
+    def __updateidinscope(self, id: str):
+        tmp = self.env.searchelem(self.envptr, id)
+        if tmp == -1:
+            raise Exception("identificator {} is not defined".format(id))
+        type = tmp[0]
+        self.envptr.addid(id, (type, True))
+
+    def __getidtypefromscope(self, id: str):
+        tmp = self.env.searchelem(self.envptr, id)
+        if tmp == -1:
+            raise Exception("identificator {} is not defined".format(id))
+        return tmp[0]
+
+    def __getidflagfromscope(self, id: str):
+        tmp = self.env.searchelem(self.envptr, id)
+        if tmp == -1:
+            raise Exception("identificator {} is not defined".format(id))
+        return tmp[1]
+
     def __search(self, ptr: NodeStruct) -> None:
         for i in ptr.childs:
             if i.name in ['DECLARE A VARIABLES']:
@@ -125,6 +150,7 @@ class Semanticalanalizer:
                 type = i.value
                 for j in i.childs:
                     id = None
+                    flag = False
                     if j.name == 'ASSIGNMENT':
                         id = j.childs[0].value
                         inittype = self.__gettype(j.childs[1])
