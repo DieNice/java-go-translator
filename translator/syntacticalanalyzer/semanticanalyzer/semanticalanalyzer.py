@@ -119,6 +119,9 @@ class Semanticalanalizer:
         self.envptr = self.envptr.prev
 
     def __addidtoscope(self, id: str, type: str, flag: bool = False):
+        tmp = self.env.searchelem(self.envptr, id)
+        if tmp != -1:
+            raise Exception("identificator {} is already defined".format(id))
         self.envptr.addid(id, (type, flag))
 
     def __updateidinscope(self, id: str):
