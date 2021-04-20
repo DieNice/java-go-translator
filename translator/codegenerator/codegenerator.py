@@ -141,7 +141,7 @@ class CodeGenerator:
             for i in range(0, l_node - 1):
                 body += '\n' + '\t' * (d + 1) + self.__translate_expression(node.childs[i])
             condition = self.__translate_expression(node.childs[l_node - 1])
-            res_str = "\n" + "\t" * d + "for ;;{{" + "{}\n " + '\t' * (d + 1) + "if {} {{\n" + '\t' * (
+            res_str = "\n" + "\t" * d + "for ;;{{" + "{}\n " + '\t' * (d + 1) + "if !({}) {{\n" + '\t' * (
                     d + 2) + "break\n" + '\t' * (d + 1) + '}}' + "\n" + '\t' * d + "}}"
             return res_str.format(body, condition)
 
