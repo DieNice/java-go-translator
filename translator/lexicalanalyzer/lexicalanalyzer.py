@@ -19,6 +19,7 @@ class LexicalAnalyzer:
         (r'\{', Token.TYPETOKEN[6]),
         (r'\;', Token.TYPETOKEN[6]),
         (r'\'[A-Za-z][A-Za-z0-9_ ]*\'', Token.TYPETOKEN[5]),
+        (r'\"[A-Za-z][A-Za-z0-9_ ]*\"', Token.TYPETOKEN[5]),
         (r'\'', Token.TYPETOKEN[6]),
         (r'\,', Token.TYPETOKEN[6]),
         (r'\"', Token.TYPETOKEN[6]),
@@ -84,8 +85,8 @@ class LexicalAnalyzer:
 
     def deletecomments(self, instr):
         '''delete all comments from string '''
-        res = re.sub(r'\s+//[\w\s]+\n', '', instr)
-        res = re.sub(r'\s+/\*[\w\s]+\*/\n', '', res)
+        res = re.sub(r'\s*//[\w\s\W]*?\n', '\n', instr)
+        res = re.sub(r'\s*/\*[\w\s\W]*?\*/\n', '\n', res)
         return res
 
     def skan(self, indata):
